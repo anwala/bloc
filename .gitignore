@@ -1,0 +1,5 @@
+experiments/*
+.DS_Store
+._.DS_Store
+build
+bloc.egg-info

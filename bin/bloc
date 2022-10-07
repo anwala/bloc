@@ -1,0 +1,136 @@
+#!python
+import argparse
+import json
+import logging
+import os
+import sys
+
+from datetime import datetime
+
+from bloc.analyzer import analyze_bloc_for_users
+from bloc.generator import gen_bloc_for_users
+
+from bloc.util import genericErrorInfo
+from bloc.util import setLogDefaults
+from bloc.util import setLoggerDets
+
+logger = logging.getLogger('bloc.bloc')
+
+def get_generic_args():
+
+    parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=30), description='Behavioral Language for Online Classification (BLOC) command-line tool')
+    parser.add_argument('screen_names_or_ids', nargs='+', help='Twitter screen_name(s) or user_id(s) to generate BLOC. If user_ids set --no-screen-name.')
+
+    #groups
+    parser.add_argument('--bearer-token', default='', help='Twitter v2 API bearer token to access API')
+
+    parser.add_argument('--access-token', default='', help='Twitter v1.1 API access-token')
+    parser.add_argument('--access-token-secret', default='', help='Twitter v1.1 API access-token-secret')
+    parser.add_argument('--consumer-key', default='', help='Twitter v1.1 API consumer-key')
+    parser.add_argument('--consumer-secret', default='', help='Twitter v1.1 API consumer-secret')
+
+    parser.add_argument('--blank-mark', type=int, default=60, help='Actions done under --blank-mark (in seconds) are assigned blank prefix.')
+    parser.add_argument('--minute-mark', type=int, default=5, help='Actions done under --minute-mark are assigned the □ prefix.')
+    parser.add_argument('--short-pause-mark', type=int, default=60, help='Use dots to mark interval of time between between --blank-mark (inclusive) and --short-pause-mark.')
+    
+    #alphabetical
+    parser.add_argument('-a', '--analyze', action='store_true', help='Analyze (n-gram, vector encoding, PCA) group of screen_names')
+    parser.add_argument('--bloc-alphabets', default=['action', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment'], nargs='+', choices=['action', 'change', 'content_syntactic', 'content_syntactic_with_pauses', 'content_semantic_entity', 'content_semantic_sentiment',  'action_content_syntactic'], help='BLOC alphabets to draw letters from.')    
+    
+    parser.add_argument('--analyze-matrix-key', default='tf_idf_matrix', choices=['tf_matrix', 'tf_matrix_normalized', 'tf_idf_matrix'], help='For analyze: extract tf_matrix or tf_matrix_normalized (l1 normalized)')
+    parser.add_argument('--analyze-training-segment-length', type=int, default=1, help='For analyze: number of time segment to use for training bloc vector model.')
+    parser.add_argument('--analyze-bloc-dimensions', default='action_extended', help='For analyze: dimension(s) (comma-delimited) to extract BLOC sequences from. Dimension options are "action_extended," "action_content_extended," "content_syntactic_extended," and "target"')
+    parser.add_argument('--analyze-tf-matrix-norm', default='l1', choices=['l1', 'l2', ''], help='For analyze: norm to use to normalize tf_matrix to get tf_matrix_normalized.')
+    parser.add_argument('--analyze-tf-idf-matrix-norm', default='l2', choices=['l1', 'l2', ''], help='For analyze: norm to use to normalize tf_idf_matrix.')
+
+    parser.add_argument('--cache-path', default='', help='Path to save timeline tweets.')
+    parser.add_argument('--cache-read', action='store_true', help='Attempt to read timeline tweets from cache-path.')
+    parser.add_argument('--cache-write', action='store_true', help='Write timeline tweets to cache-path.')
+
+    parser.add_argument('--following-lookup', action='store_true', help='Check following (distinguish between friend/non-friend).')
+    parser.add_argument('--keep-tweets', action='store_true', help='When writing BLOC JSON output, keep tweets, default is False.')
+    parser.add_argument('--keep-bloc-segments', action='store_true', help='When writing BLOC JSON output, keep bloc segments, default is False.')
+    parser.add_argument('--gen-rt-content', action='store_true', help='For Content BLOC, assign BLOC sequence to retweets. Default is OFF.')
+
+    parser.add_argument('--log-file', default='', help='Log output filename')
+    parser.add_argument('--log-format', default='', help='Log print format, see: https://docs.python.org/3/howto/logging-cookbook.html')
+    parser.add_argument('--log-level', default='info', choices=['critical', 'error', 'warning', 'info', 'debug', 'notset'], help='Log level')
+
+    parser.add_argument('-m', '--max-pages', type=int, default=1, help='The maximum number of user Timeline pages (20 tweets/page) to extract tweets.')
+    parser.add_argument('--max-results', type=int, default=100, help='For Twitter v2, maximum number of tweets to return per request.')
+    parser.add_argument('-n', '--ngram', type=int, default=1, help='For analyze: most frequent BLOC sequence ngram length.')
+    parser.add_argument('--no-screen-name', action='store_true', help='"screen_names_or_ids" contains user_ids and not screen_names')
+    parser.add_argument('-o', '--output', help='Output path')
+
+    parser.add_argument('--timeline-startdate', default='', help='Extract tweets published from --timeline-startdate in UTC (YYYY-MM-DD HH:MM:SS).')
+    parser.add_argument('--timeline-scroll-by-hours', type=int, help='Starting at --timeline-startdate, scroll up (positive hours) or down (negative hours) timeline by this value to retrieve timeline tweets.')    
+    
+    return parser
+
+def proc_req(args):
+
+    params = vars(args)
+    
+    if( params['timeline_startdate'] != '' ):
+        try:
+            datetime.strptime(params['timeline_startdate'], '%Y-%m-%d %H:%M:%S')
+        except:
+            logger.error('\nError parsing datetime: ' + params['timeline_startdate'] + ' while expecting %Y-%m-%d %H:%M:%S')
+            return
+  
+    setLogDefaults( params )
+    setLoggerDets( logger, params['log_dets'] )
+    all_user_bloc = gen_bloc_for_users( **params )
+
+    if( args.analyze is True ):
+
+        print('REVIEW IMPLEMENTATION IF USER_ID (NOT SCREEN_NAME) IS USED' * 100)
+        return analyze_bloc_for_users(
+            all_user_bloc,
+            ngram=args.ngram,
+            analyze_bloc_dimensions=args.analyze_bloc_dimensions,
+            analyze_matrix_key=args.analyze_matrix_key,
+            analyze_tf_matrix_norm=args.analyze_tf_matrix_norm,
+            analyze_tf_idf_matrix_norm=args.analyze_tf_idf_matrix_norm,
+            analyze_training_segment_length=args.analyze_training_segment_length,
+            max_pages=args.max_pages,
+            timeline_startdate=args.timeline_startdate,
+            timeline_scroll_by_hours=args.timeline_scroll_by_hours
+        )
+
+    else:
+        #conforming to how bloc_analyzer.analyze_bloc_for_users() returns 
+        return { 'all_user_bloc': all_user_bloc }
+
+def write_output(output, payload):
+
+    if( 'all_user_bloc' not in payload ):
+        return
+
+    try:
+        with open(output, 'w') as outfile:
+            for u in payload['all_user_bloc']:
+                outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
+
+        print('\nwrite_output(): wrote:', output)
+    except:
+        genericErrorInfo()
+
+def main():
+
+    if( len(sys.argv) > 1 ):
+        if( sys.argv[1] == '-v' or sys.argv[1] == '--version' ):
+            
+            from bloc.version import __appversion__
+            print(__appversion__)
+            return
+    
+    parser = get_generic_args()
+    args = parser.parse_args()
+    payload = proc_req(args)
+
+    if( args.output is not None ):
+        write_output( args.output, payload )
+
+if __name__ == '__main__':
+    main()
