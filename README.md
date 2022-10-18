@@ -25,7 +25,7 @@ More alphabets are implemented here compared to the BLOC intro paper ([*A Genera
 * Change
 * Time
 
-The paper introduced the Action (which was combined with Time) and Content alphabets. Also, note that the Time symbols implemented here differ from those introduced in the paper:
+The paper introduced the Action (which was combined with Time) and Content alphabets. Also note that the Time symbols implemented here differ from those introduced in the paper:
 
 Time symbols implemented:
 * blank symbol (very short time)
