@@ -62,8 +62,8 @@ logger = logging.getLogger('bloc.bloc')
     x - Content-Semantic-Entities     (Product (e.g., Mountain Dew, Mozilla Firefox))
     ¤ - Content-Syntactic             (¤ - Cashtag)
     λ - Change                        (Language change)
-    ρ - Action                        (Reply self)
-    σ - Action                        (Retweet self)
+    π - Action                        (Reply self)
+    ρ - Action                        (Retweet self)
     φ - Content-Syntactic             (φ - Quote self)
     ⊛ - Content-Semantic-Entities     (Other (e.g., Diabetes, Super Bowl 50))
     ⋂ - Content-Semantic-Sentiment    (⋂ - Negative)
@@ -350,7 +350,7 @@ def get_twt_text_exclusively(txt, entities):
     return txt
 
 def get_action_glyphs():
-    return ['P', 'p', 'ρ', 'R', 'r', 'σ', 'T']
+    return ['P', 'p', 'π', 'R', 'r', 'ρ', 'T']
 
 def get_time_glyphs():
     return ['□', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
@@ -445,10 +445,10 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
             
             P - Reply a friend (can't be checked until friendship relationship assigned)
             p - Reply a non-friend
-            ρ - Reply self
+            π - Reply self
             R - Retweet a friend (can't be checked until friendship relationship assigned)
             r - Retweet a non-friend
-            σ - Retweet self
+            ρ - Retweet self
             T - Tweet
     '''
     if( twt.get('in_reply_to_status_id', None) is not None ):
@@ -458,7 +458,7 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
         note = 'Reply (non-friend)'
         
         if( twt.get('in_reply_to_user_id', None) == twt['user']['id'] ):
-            label = 'ρ'
+            label = 'π'
             note = 'Reply (self)'
             
         elif( twt['bloc']['src_follows_tgt'] is True ):
@@ -479,7 +479,7 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
         note = 'Retweet (non-friend)'
         
         if( twt['retweeted_status']['user']['id'] == twt['user']['id'] ):
-            label = 'σ'
+            label = 'ρ'
             note = 'Retweet (self)'
 
         elif( twt['bloc']['src_follows_tgt'] is True ):
