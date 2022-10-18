@@ -38,9 +38,8 @@ Time symbols implemented:
 * ⚅ - Time (over year)
 
 Time symbols introduced in paper:
-![`f_1(∆)`](misc/f_1.png)
-d
-![`f_2(∆)`](misc/f_2.png)
+<img src="misc/f_1.png" alt="BLOC time function, f_1(delta)" height="200">
+<img src="misc/f_2.png" alt="BLOC time function, f_2(delta)" height="200">
 
 ## Usage/Examples
 ### (Selected) Command line parameters
