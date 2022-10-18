@@ -36,8 +36,8 @@ Time symbols implemented:
 * ⚃ - Time (under month)
 * ⚄ - Time (under year)
 * ⚅ - Time (over year)
-
 Time symbols introduced in paper:
+
 <img src="misc/f_1.png" alt="BLOC time function, f_1(delta)" height="100"><br/>
 <img src="misc/f_2.png" alt="BLOC time function, f_2(delta)" height="200">
 
