@@ -15,6 +15,33 @@ $ docker run -it --rm --name BLOC -v "$PWD":/usr/src/myapp -w /usr/src/myapp pyt
 $ git clone https://github.iu.edu/anwala/bloc.git
 $ cd bloc/; pip install .; cd ..; rm -rf bloc;
 ```
+
+## BLOC Alphabets (Code vs. Paper)
+
+More alphabets are implemented here compared to the BLOC intro paper ([*A General Language for Modeling Social Media Account Behavior*](https://github.com/anwala/general-language-behavior)). Specifically, this BLOC tool implements these alphabets:
+* Action
+* Content-Syntactic
+* Content-Semantic-Sentiment
+* Change
+* Time
+
+The paper introduced the Action (which was combined with Time) and Content alphabets. Also, note that the Time symbols implemented here differ from those introduced in the paper:
+
+Time symbols implemented:
+* blank symbol (very short time)
+* □ - Time (under minute_mark)
+* ⚀ - Time (under hour)
+* ⚁ - Time (under day)
+* ⚂ - Time (under week)
+* ⚃ - Time (under month)
+* ⚄ - Time (under year)
+* ⚅ - Time (over year)
+
+Time symbols introduced in paper:
+![`f_1(∆)`](misc/f_1.png)
+d
+![`f_2(∆)`](misc/f_2.png)
+
 ## Usage/Examples
 ### (Selected) Command line parameters
 ```
