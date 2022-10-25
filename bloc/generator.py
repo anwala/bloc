@@ -15,6 +15,7 @@ from bloc.util import datetimeFromUtcToLocal
 #from bloc.util import dumpJsonToFile
 from bloc.util import find_tweet_timestamp_post_snowflake
 from bloc.util import genericErrorInfo
+from bloc.util import getDictFromFile
 from bloc.util import getDictFromJsonGZ
 from bloc.util import get_screen_name_frm_status_uri
 from bloc.util import gen_post_snowflake_twitter_id
@@ -356,7 +357,7 @@ def get_action_glyphs():
 def get_time_glyphs():
     return ['□', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
-def get_delta_glyph(delta_seconds, blank_mark=60, short_pause_mark=0, minute_mark=5):
+def get_delta_glyph(delta_seconds, blank_mark=60, minute_mark=5):
     
     '''
         UPDATE get_time_glyphs() IF CHANGES
@@ -371,8 +372,8 @@ def get_delta_glyph(delta_seconds, blank_mark=60, short_pause_mark=0, minute_mar
 
     if( delta_seconds < blank_mark ):
         glyph = ''#under blank_mark
-    elif( delta_seconds < short_pause_mark ):
-        glyph = '.' * ( (delta_seconds//60) )
+    #elif( delta_seconds < short_pause_mark ):
+    #    glyph = '.' * ( (delta_seconds//60) )
     elif( delta_seconds < minute_mark*60 ):
         glyph = '□'
     elif( delta_seconds < 3600 ):
@@ -390,17 +391,17 @@ def get_delta_glyph(delta_seconds, blank_mark=60, short_pause_mark=0, minute_mar
 
     return glyph
 
-def get_duration_prefix(cur_time, prev_time, blank_mark, short_pause_mark, minute_mark):
+def get_duration_prefix(cur_time, prev_time, blank_mark, minute_mark):
 
     seq_diff_time = datetime.strptime( cur_time, '%Y-%m-%d %H:%M:%S' ) - datetime.strptime( prev_time, '%Y-%m-%d %H:%M:%S' )
     #delta_seconds = (seq_diff_time.days*86400) + seq_diff_time.seconds
     delta_seconds = int( seq_diff_time.total_seconds() )
 
-    dur_glyph = get_delta_glyph( delta_seconds, blank_mark=blank_mark, short_pause_mark=short_pause_mark, minute_mark=minute_mark )
+    dur_glyph = get_delta_glyph( delta_seconds, blank_mark=blank_mark, minute_mark=minute_mark )
     
     return delta_seconds, dur_glyph
 
-def get_pause(twt, prev_twt, blank_mark, short_pause_mark, minute_mark, use_src_ref_time=False):
+def get_pause(twt, prev_twt, blank_mark, minute_mark, use_src_ref_time=False):
 
     if( 'in_reply_to_status_id' not in twt ):
         return -1, ''
@@ -427,10 +428,10 @@ def get_pause(twt, prev_twt, blank_mark, short_pause_mark, minute_mark, use_src_
 
     if( use_src_ref_time is True and source_ref_time != '' ):
         #dur_glyph encodes delta between twt (current) and the tweet that was replied to or retweeted
-        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=source_ref_time, blank_mark=blank_mark, short_pause_mark=short_pause_mark, minute_mark=minute_mark )
+        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=source_ref_time, blank_mark=blank_mark, minute_mark=minute_mark )
     elif( prev_twt != '' ):
         #dur_glyph encodes delta between twt (current) and prev_twt
-        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=prev_twt['bloc']['local_time'], blank_mark=blank_mark, short_pause_mark=short_pause_mark, minute_mark=minute_mark )
+        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=prev_twt['bloc']['local_time'], blank_mark=blank_mark, minute_mark=minute_mark )
          
     return delta_seconds, dur_glyph
 
@@ -1036,7 +1037,7 @@ def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_nu
         
     bloc_info['segmentation_type'] = segmentation_type
 
-def add_bloc_sequences(tweets, blank_mark=60, short_pause_mark=0, minute_mark=5, gen_rt_content=False, add_txt_glyph=True, segmentation_type='week_number', **kwargs):
+def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=False, add_txt_glyph=True, segmentation_type='week_number', **kwargs):
 
     def tranfer_dets_for_stream_statuses(twt):
         
@@ -1168,7 +1169,7 @@ def add_bloc_sequences(tweets, blank_mark=60, short_pause_mark=0, minute_mark=5,
 
         ex_txt = get_twt_text_exclusively( twt[twt_text_ky], twt['entities'] )
         
-        delta_seconds, dur_glyph = get_pause(twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, short_pause_mark=short_pause_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
+        delta_seconds, dur_glyph = get_pause(twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         twt['bloc']['bloc_sequences'] = {}
 
         if( 'action' in bloc_alphabets ):
@@ -1336,7 +1337,6 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     kwargs.setdefault('cache_write', False)
 
     kwargs.setdefault('blank_mark', 60)
-    kwargs.setdefault('short_pause_mark', 60)
     kwargs.setdefault('minute_mark', 5)
 
     kwargs.setdefault('ansi_code', '91m')
@@ -1385,6 +1385,11 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
 def gen_bloc_for_users(screen_names_or_ids, bearer_token, consumer_key, consumer_secret, access_token, access_token_secret, max_pages=1, following_lookup=False, timeline_startdate=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), timeline_scroll_by_hours=None, ngram=1, **kwargs):
     
     kwargs.setdefault('no_screen_name', False)
+    kwargs.setdefault('bloc_symbols_path', '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__))))
+
+    all_bloc_symbols = getDictFromFile(kwargs['bloc_symbols_path'])
+        
+    print('all_bloc_symbols:', all_bloc_symbols)
 
     if( bearer_token == '' ):
         oauth_or_ostwt = OAuth1Session(consumer_key, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_token_secret)

@@ -31,7 +31,6 @@ def get_generic_args():
 
     parser.add_argument('--blank-mark', type=int, default=60, help='Actions done under --blank-mark (in seconds) are assigned blank prefix.')
     parser.add_argument('--minute-mark', type=int, default=5, help='Actions done under --minute-mark are assigned the □ prefix.')
-    parser.add_argument('--short-pause-mark', type=int, default=60, help='Use dots to mark interval of time between between --blank-mark (inclusive) and --short-pause-mark.')
     
     #alphabetical
     parser.add_argument('-a', '--analyze', action='store_true', help='Analyze (n-gram, vector encoding, PCA) group of screen_names')
