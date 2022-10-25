@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from requests_oauthlib import OAuth1Session
 from textblob import TextBlob
 
+from bloc.util import color_bloc_action_str
 from bloc.util import datetimeFromUtcToLocal
 #from bloc.util import dumpJsonToFile
 from bloc.util import find_tweet_timestamp_post_snowflake
@@ -1250,7 +1251,7 @@ def add_bloc_sequences(tweets, blank_mark=60, short_pause_mark=0, minute_mark=5,
     
     return result
 
-def post_proc_bloc_sequences(report, seconds_mark, minute_mark):
+def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code):
 
     if( 'tweets' not in report or 'bloc' not in report ):
         return
@@ -1262,7 +1263,12 @@ def post_proc_bloc_sequences(report, seconds_mark, minute_mark):
     for dim, bloc_seq in aggregate_bloc.items():
 
         logger.info(dim + ':')
-        logger.info(bloc_seq)
+        
+        if( dim == 'action' ):
+            logger.info( color_bloc_action_str(bloc_seq, ansi_code=ansi_code) )
+        else:
+            logger.info(bloc_seq)
+        
         logger.info('')
 
     logger.info( get_timeline_key_dets(seconds_mark, minute_mark) )
@@ -1332,11 +1338,12 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     kwargs.setdefault('blank_mark', 60)
     kwargs.setdefault('short_pause_mark', 60)
     kwargs.setdefault('minute_mark', 5)
+
+    kwargs.setdefault('ansi_code', '91m')
     
     tweets = []
     write_cache = True
     prev_now = datetime.now()
-
 
     if( screen_name == '' ):
         cache_filename = get_timeline_tweets_cache_filename(kwargs['cache_path'], user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
@@ -1371,7 +1378,7 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     payload = add_bloc_sequences(tweets, **kwargs)
     
     payload['elapsed_time'] = str(delta)
-    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'])
+    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'])
 
     return payload
 

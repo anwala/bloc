@@ -8,7 +8,7 @@ from datetime import datetime
 from sklearn.feature_extraction.text import CountVectorizer
 
 from bloc.util import genericErrorInfo
-from bloc.util import getColorTxt
+from bloc.util import get_color_txt
 from bloc.util import getDictFromJsonGZ
 from bloc.util import gzipTextFile
 

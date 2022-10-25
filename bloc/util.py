@@ -235,8 +235,25 @@ def gzipTextFile(path, txt):
 
 #/stringmatrix/vector manipulation - start
 
-def getColorTxt(txt, ansiCode='91m'):
-    return '\033[' + ansiCode + '{}\033[00m'.format(txt)
+def get_color_txt(txt, ansi_code='91m'):
+    return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[00m'.format(txt)
+
+def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅|()*]+)', ansi_code='91m'):
+
+    if( ansi_code.strip() == '' ):
+        return bloc_action_str
+
+    colored_bloc_action_str = ''
+    bloc_action_tokens = re.split(split_pattern, bloc_action_str)
+    
+    for tok in bloc_action_tokens:
+
+        if( tok.strip() not in split_pattern ):
+            tok = get_color_txt(tok, ansi_code=ansi_code)
+        
+        colored_bloc_action_str += tok
+
+    return colored_bloc_action_str
 
 def get_char_ngram(string, n):
 
