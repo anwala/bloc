@@ -354,13 +354,10 @@ def get_twt_text_exclusively(txt, entities):
 def get_action_glyphs():
     return ['P', 'p', 'π', 'R', 'r', 'ρ', 'T']
 
-def get_time_glyphs():
-    return ['□', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
-
-def get_delta_glyph(delta_seconds, blank_mark=60, minute_mark=5):
+def get_delta_glyph(symbols, delta_seconds, blank_mark=60, minute_mark=5):
     
     '''
-        UPDATE get_time_glyphs() IF CHANGES
+        Default time symbols
         □ under minute_mark
         ⚀ under hour
         ⚁ under day
@@ -371,37 +368,37 @@ def get_delta_glyph(delta_seconds, blank_mark=60, minute_mark=5):
     '''
 
     if( delta_seconds < blank_mark ):
-        glyph = ''#under blank_mark
+        glyph = symbols['blank_mark']['symbol']
     #elif( delta_seconds < short_pause_mark ):
     #    glyph = '.' * ( (delta_seconds//60) )
     elif( delta_seconds < minute_mark*60 ):
-        glyph = '□'
+        glyph = symbols['under_minute_mark']['symbol']
     elif( delta_seconds < 3600 ):
-        glyph = '⚀'#under hour
+        glyph = symbols['under_hour_mark']['symbol']
     elif( delta_seconds < 86400 ):
-        glyph = '⚁'#under day
+        glyph = symbols['under_day_mark']['symbol']
     elif( delta_seconds < 604800 ):
-        glyph = '⚂'#under week
+        glyph = symbols['under_week_mark']['symbol']
     elif( delta_seconds < 2628000 ):
-        glyph = '⚃'#under month
+        glyph = symbols['under_month_mark']['symbol']
     elif( delta_seconds < 31540000 ):
-        glyph = '⚄'#under year
+        glyph = symbols['under_year_mark']['symbol']
     else:
-        glyph = '⚅'#over year
+        glyph = symbols['over_year_mark']['symbol']
 
     return glyph
 
-def get_duration_prefix(cur_time, prev_time, blank_mark, minute_mark):
+def get_duration_prefix(symbols, cur_time, prev_time, blank_mark, minute_mark):
 
     seq_diff_time = datetime.strptime( cur_time, '%Y-%m-%d %H:%M:%S' ) - datetime.strptime( prev_time, '%Y-%m-%d %H:%M:%S' )
     #delta_seconds = (seq_diff_time.days*86400) + seq_diff_time.seconds
     delta_seconds = int( seq_diff_time.total_seconds() )
 
-    dur_glyph = get_delta_glyph( delta_seconds, blank_mark=blank_mark, minute_mark=minute_mark )
+    dur_glyph = get_delta_glyph( symbols, delta_seconds, blank_mark=blank_mark, minute_mark=minute_mark )
     
     return delta_seconds, dur_glyph
 
-def get_pause(twt, prev_twt, blank_mark, minute_mark, use_src_ref_time=False):
+def get_pause(symbols, twt, prev_twt, blank_mark, minute_mark, use_src_ref_time=False):
 
     if( 'in_reply_to_status_id' not in twt ):
         return -1, ''
@@ -428,14 +425,14 @@ def get_pause(twt, prev_twt, blank_mark, minute_mark, use_src_ref_time=False):
 
     if( use_src_ref_time is True and source_ref_time != '' ):
         #dur_glyph encodes delta between twt (current) and the tweet that was replied to or retweeted
-        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=source_ref_time, blank_mark=blank_mark, minute_mark=minute_mark )
+        delta_seconds, dur_glyph = get_duration_prefix( symbols=symbols, cur_time=twt['bloc']['local_time'], prev_time=source_ref_time, blank_mark=blank_mark, minute_mark=minute_mark )
     elif( prev_twt != '' ):
         #dur_glyph encodes delta between twt (current) and prev_twt
-        delta_seconds, dur_glyph = get_duration_prefix( cur_time=twt['bloc']['local_time'], prev_time=prev_twt['bloc']['local_time'], blank_mark=blank_mark, minute_mark=minute_mark )
+        delta_seconds, dur_glyph = get_duration_prefix( symbols=symbols, cur_time=twt['bloc']['local_time'], prev_time=prev_twt['bloc']['local_time'], blank_mark=blank_mark, minute_mark=minute_mark )
          
     return delta_seconds, dur_glyph
 
-def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq=''):
+def get_bloc_action_seq(symbols, twt, delta_seconds, dur_glyph, content_syntactic_seq=''):
 
     '''
         UPDATE get_action_glyphs() IF CHANGES
@@ -456,16 +453,16 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
     if( twt.get('in_reply_to_status_id', None) is not None ):
 
         #this is a reply
-        label = 'p'
-        note = 'Reply (non-friend)'
+        label = symbols['non_friend_reply']['symbol']
+        note = symbols['non_friend_reply']['description']
         
         if( twt.get('in_reply_to_user_id', None) == twt['user']['id'] ):
-            label = 'π'
-            note = 'Reply (self)'
+            label = symbols['self_reply']['symbol']
+            note = symbols['self_reply']['description']
             
         elif( twt['bloc']['src_follows_tgt'] is True ):
-            label = 'P'
-            note = 'Reply (friend)'
+            label = label = symbols['friend_reply']['symbol']
+            note = note = symbols['friend_reply']['description']
             
         action_seq = {
             'seq': label, 
@@ -477,16 +474,16 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
 
         #this is a retweet
 
-        label = 'r'
-        note = 'Retweet (non-friend)'
+        label = symbols['non_friend_rt']['symbol']
+        note = symbols['non_friend_rt']['description']
         
         if( twt['retweeted_status']['user']['id'] == twt['user']['id'] ):
-            label = 'ρ'
-            note = 'Retweet (self)'
+            label = symbols['self_rt']['symbol']
+            note = symbols['self_rt']['description']
 
         elif( twt['bloc']['src_follows_tgt'] is True ):
-            label = 'R'
-            note = 'Retweet (friend)'
+            label = symbols['friend_rt']['symbol']
+            note = symbols['friend_rt']['description']
 
         action_seq = {
             'seq': label, 
@@ -498,12 +495,12 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
 
         #this is a tweet 
 
-        label = 'T'
-        note = 'Tweet'
+        label = symbols['tweet']['symbol']
+        note = symbols['tweet']['description']
 
         action_seq = {
-            'seq': 'T', 
-            'note': 'Tweet', 
+            'seq': symbols['tweet']['symbol'], 
+            'note': symbols['tweet']['description'], 
             'seq_dets': { 'user_screen_name': twt['user']['screen_name'] }
         }
 
@@ -511,7 +508,7 @@ def get_bloc_action_seq(twt, delta_seconds, dur_glyph, content_syntactic_seq='')
     action_seq['seq'] = dur_glyph + action_seq['seq'] + content_syntactic_seq
     return action_seq
 
-def get_bloc_content_sem_sent_seq(twt, txt_key, delta_seconds, dur_glyph, content_syntactic_seq=''):
+def get_bloc_content_sem_sent_seq(symbols, twt, txt_key, delta_seconds, dur_glyph, content_syntactic_seq=''):
     
     '''
         The SENTIMENT alphabets are
@@ -552,14 +549,14 @@ def get_bloc_content_sem_sent_seq(twt, txt_key, delta_seconds, dur_glyph, conten
     '''
 
     if( sent > 0 ):    
-        seq = '⋃'
-        sent_seq['note'] = 'Positive sentiment'
+        seq = symbols['positive']['symbol']
+        sent_seq['note'] = symbols['positive']['description']
     elif( sent == 0 ): 
-        seq = '-'
-        sent_seq['note'] = 'Neutral sentiment'
+        seq = symbols['neutral']['symbol']
+        sent_seq['note'] = symbols['neutral']['description']
     else:              
-        seq = '⋂'
-        sent_seq['note'] = 'Negative sentiment'
+        seq = symbols['negative']['symbol']
+        sent_seq['note'] = symbols['negative']['description']
 
     
     #dur_glyph = ''
@@ -568,9 +565,9 @@ def get_bloc_content_sem_sent_seq(twt, txt_key, delta_seconds, dur_glyph, conten
     sent_seq['seq_dets'] = { 'sent': sent }
     return sent_seq
 
-def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_count=0, include_time=False):
+def get_bloc_change_seq(symbols, twt, prev_twt, delta_seconds, dur_glyph, fold_start_count=0, include_time=False):
 
-    def add_delete_tweet_change(prev_u, cur_u, fold_start_count):
+    def add_delete_tweet_change(symbol, symbol_note, prev_u, cur_u, fold_start_count):
 
         if( 'statuses_count' not in prev_u or 'statuses_count' not in cur_u ):
             return []
@@ -580,11 +577,11 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
             return []
 
         deletion_count = -1 * deletion_count
-        label = 'D' * deletion_count
+        label = symbol * deletion_count
     
         return [{
             'label': label[:fold_start_count] if fold_start_count > 0 else label, 
-            'note': 'Deletions', 
+            'note': symbol_note, 
             'details': { 'current_statuses_count': cur_u['statuses_count'], 'previous_statuses_count': prev_u['statuses_count'] }
         }]
 
@@ -611,7 +608,7 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
             'details': { 'current_' + key: cur_u[key], 'previous_' + key: prev_u[key] }
         }]
 
-    def add_profile_appearance_change(prev_u, cur_u):
+    def add_profile_appearance_change(symbol, symbol_note, prev_u, cur_u):
 
         for key, val in prev_u.items():
 
@@ -623,8 +620,8 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
 
             if( prev_u[key] != cur_u[key] ):
                 return [{
-                    'label': 'a', 
-                    'note': 'Appearance change', 
+                    'label': symbol, 
+                    'note': symbol_note, 
                     'details': { 'current_' + key: cur_u[key], 'previous_' + key: prev_u[key] }
                 }]
 
@@ -728,7 +725,7 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
         
     
     '''
-        The CHANGE alphabets are
+        The default CHANGE alphabets are
             a - Profile appearance change
             D - Delete tweet
             d - Description change
@@ -744,7 +741,7 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
             s - source change
             u - URL change
             W - Gained followers
-            w - Lossed followers
+            w - Lost followers
 
         fold_start_count:
             Some alphabets (e.g., D - Deletion) could lead to large labels (e.g., 1000 Ds)
@@ -766,20 +763,20 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
 
     seq = []
 
-    seq += add_something_change_v1( key='screen_name', glyph='N', prev_u=prev_twt['user'], cur_u=twt['user'] )
-    seq += add_something_change_v1( key='name', glyph='n', prev_u=prev_twt['user'], cur_u=twt['user'] )
-    seq += add_something_change_v1( key='location', glyph='g', prev_u=prev_twt['user'], cur_u=twt['user'] )
-    seq += add_geo_change( glyph='G', prev_u=prev_twt, cur_u=twt )
-    seq += add_profile_appearance_change( prev_twt['user'], twt['user'] )
-    seq += add_something_change_v1( key='url', glyph='u', prev_u=prev_twt['user'], cur_u=twt['user'] )    
-    seq += add_something_change_v1( key='description', glyph='d', prev_u=prev_twt['user'], cur_u=twt['user'] )
-    seq += add_something_change_v2( key='source', glyph='s', prev_val=prev_twt.get('source', None), cur_val=twt.get('source', None) )
-    seq += add_something_change_v2( key='lang', glyph='λ', prev_val=prev_twt.get('lang', None), cur_val=twt.get('lang', None) )
+    seq += add_something_change_v1( key='screen_name', glyph=symbols['handle_change']['symbol'], prev_u=prev_twt['user'], cur_u=twt['user'] )
+    seq += add_something_change_v1( key='name', glyph=symbols['name_change']['symbol'], prev_u=prev_twt['user'], cur_u=twt['user'] )
+    seq += add_something_change_v1( key='location', glyph=symbols['profile_location_change']['symbol'], prev_u=prev_twt['user'], cur_u=twt['user'] )
+    seq += add_geo_change( glyph=symbols['geo_location_change']['symbol'], prev_u=prev_twt, cur_u=twt )
+    seq += add_profile_appearance_change( symbols['profile_appearance_change']['symbol'], symbols['profile_appearance_change']['description'], prev_twt['user'], twt['user'] )
+    seq += add_something_change_v1( key='url', glyph=symbols['profile_url_change']['symbol'], prev_u=prev_twt['user'], cur_u=twt['user'] )    
+    seq += add_something_change_v1( key='description', glyph=symbols['description_change']['symbol'], prev_u=prev_twt['user'], cur_u=twt['user'] )
+    seq += add_something_change_v2( key='source', glyph=symbols['source_change']['symbol'], prev_val=prev_twt.get('source', None), cur_val=twt.get('source', None) )
+    seq += add_something_change_v2( key='lang', glyph=symbols['language_change']['symbol'], prev_val=prev_twt.get('lang', None), cur_val=twt.get('lang', None) )
 
-    seq += add_delete_tweet_change( prev_twt['user'], twt['user'], fold_start_count )
-    seq += add_gen_tweet_count_change( key='friends_count', pos_glyph='F', neg_glyph='f', pos_label='Follow', neg_label='Unfollow', prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )    
-    seq += add_gen_tweet_count_change( key='favourites_count', pos_glyph='L', neg_glyph='l', pos_label='Like', neg_label='Unlike', prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )
-    seq += add_gen_tweet_count_change( key='followers_count', pos_glyph='W', neg_glyph='w', pos_label='Follower_gain', neg_label='Follower_loss', prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )
+    seq += add_delete_tweet_change( symbols['delete_tweet']['symbol'], symbols['delete_tweet']['description'], prev_twt['user'], twt['user'], fold_start_count )
+    seq += add_gen_tweet_count_change( key='friends_count', pos_glyph=symbols['follow_someone']['symbol'], neg_glyph=symbols['unfollow_someone']['symbol'], pos_label=symbols['follow_someone']['description'], neg_label=symbols['unfollow_someone']['description'], prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )    
+    seq += add_gen_tweet_count_change( key='favourites_count', pos_glyph=symbols['like_tweet']['symbol'], neg_glyph=symbols['unlike_tweet']['symbol'], pos_label=symbols['like_tweet']['description'], neg_label=symbols['unlike_tweet']['description'], prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )
+    seq += add_gen_tweet_count_change( key='followers_count', pos_glyph=symbols['follower_gain']['symbol'], neg_glyph=symbols['follower_loss']['symbol'], pos_label=symbols['follower_gain']['description'], neg_label=symbols['follower_loss']['description'], prev_u=prev_twt['user'], cur_u=twt['user'], fold_start_count=fold_start_count )
 
     if( len(seq) == 0 ):
         return result
@@ -794,10 +791,10 @@ def get_bloc_change_seq(twt, prev_twt, delta_seconds, dur_glyph, fold_start_coun
 
     return result
 
-def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='full_text', gen_rt_content=True, add_txt_glyph=True, delta_seconds=-1, dur_glyph=''):
+def get_bloc_content_syn_seq(symbols, tweet, content_syntactic_add_pause=False, txt_key='full_text', gen_rt_content=True, add_txt_glyph=True, delta_seconds=-1, dur_glyph=''):
     
     '''
-        The CONTENT-SYNTACTIC alphabets are:
+        The default CONTENT-SYNTACTIC alphabets are:
             E - Media 
             H - Hashtag
             ¤ - Cashtag
@@ -830,8 +827,8 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
         if( 'media' in twt['extended_entities'] ):
             
             media = [{
-                'label': 'E', 
-                'note': 'Media', 
+                'label': symbols['media']['symbol'], 
+                'note': symbols['media']['description'], 
                 'details': None
             }]
 
@@ -841,15 +838,15 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
         
         for h in twt['entities'].get('hashtags', []):
             seq.append({
-                'label': 'H', 
-                'note': 'Hashtag', 
+                'label': symbols['hashtag']['symbol'], 
+                'note': symbols['hashtag']['description'], 
                 'details': {'hashtag': h['text']}
             })
 
         for c in twt['entities'].get('symbols', []):
             seq.append({
-                'label': '¤', 
-                'note': 'Cashtag', 
+                'label': symbols['cashtag']['symbol'], 
+                'note': symbols['cashtag']['description'], 
                 'details': {'cashtag': c['text']}
             })
 
@@ -859,15 +856,15 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
 
             mention_cursor = 0
             label = ''
-            note = 'Mention (non-friend)'
+            note = symbols['non_friend_mention']['description']
 
             if( twt['in_reply_to_status_id'] is None and len(twt['entities']['user_mentions']) != 0 ):
                 #this is NOT a reply
-                label = 'm'
+                label = symbols['non_friend_mention']['symbol']
 
             elif( len(twt['entities']['user_mentions']) > 1 ):
                 #this is a reply with a mention
-                label = 'm'
+                label = symbols['non_friend_mention']['symbol']
                 mention_cursor = 1#skip first reply 
                 
 
@@ -914,16 +911,19 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
                 continue
         
             if( u_screen_name == '' ):
-                link_label = 'U'
+                link_label = symbols['url']['symbol']
+                link_label_note = symbols['url']['description']
             elif( u_screen_name == twt['user']['screen_name'] ):
-                link_label = 'φ'
+                link_label = symbols['self_quote']['symbol']
+                link_label_note = symbols['self_quote']['description']
             else:
-                link_label = 'q'
+                link_label = symbols['quote_url']['symbol']
+                link_label_note = symbols['quote_url']['description']
             #check for self quote - end
 
             seq.append({
                 'label': link_label, 
-                'note': 'URL', 
+                'note': link_label_note, 
                 'details': {'url': u['expanded_url']}
             })
     
@@ -938,8 +938,8 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
     exclusive_text = exclusive_text.strip()
     if( exclusive_text != '' and add_txt_glyph is True ):
         seq.append({
-            'label': 't', 
-            'note': 'Text', 
+            'label': symbols['text']['symbol'], 
+            'note': symbols['text']['description'], 
             'details': {'exclusive_text': exclusive_text}
         })
     
@@ -957,7 +957,7 @@ def get_bloc_content_syn_seq(tweet, content_syntactic_add_pause=False, txt_key='
 
     return result
 
-def get_bloc_content_sem_ent_seq(tweet, content_semantic_add_pause=False, gen_rt_content=True, delta_seconds=-1, dur_glyph=''):
+def get_bloc_content_sem_ent_seq(symbols, tweet, content_semantic_add_pause=False, gen_rt_content=True, delta_seconds=-1, dur_glyph=''):
     
     '''
         The CONTENT-SEMENTIC alphabets are:
@@ -972,11 +972,11 @@ def get_bloc_content_sem_ent_seq(tweet, content_semantic_add_pause=False, gen_rt
     '''
 
     entity_type_maps = {
-        'Person': '⚇',
-        'Place': '⌖',
-        'Organization': '⋈',
-        'Product': 'x',
-        'Other': '⊛'
+        'Person': symbols['person']['symbol'],
+        'Place': symbols['place']['symbol'],
+        'Organization': symbols['organization']['symbol'],
+        'Product': symbols['product']['symbol'],
+        'Other': symbols['other']['symbol']
     }
 
     #by default content-se is NOT assigned to retweets
@@ -1070,12 +1070,12 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=Fals
                 bloc_segments['segments'][segment_id][dim] = twt['bloc']['bloc_sequences'][dim]['seq']         
             #segment_id bloc segmenter - end
     
-    def fmt_action_content_syntactic_bloc(bloc_segments, alph_key):
+    def fmt_action_content_syntactic_bloc(symbols, bloc_segments, alph_key):
 
         #mv all content to behind action, e.g., go from T(qt)T(qt) to TT(qt)(qt)
 
-        time_glyphs = get_time_glyphs()
-        blank_and_time_glyphs = [''] + time_glyphs
+        time_glyphs = [symb[1]['symbol'] for symb in symbols.items() if symb[0] != 'blank_mark']
+        blank_and_time_glyphs = [symbols['blank_mark']['symbol']] + time_glyphs
         time_glyphs = ''.join(time_glyphs)
 
         for seg_num, segs in bloc_segments.items():
@@ -1100,9 +1100,9 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=Fals
             
             segs[alph_key] = final_segs
 
-    def sort_action_words(bloc_segments, alph_key):
+    def sort_action_words(symbols, bloc_segments, alph_key):
 
-        time_glyphs = get_time_glyphs()
+        time_glyphs = [symb[1]['symbol'] for symb in symbols.items() if symb[0] != 'blank_mark']
         time_glyphs = ''.join(time_glyphs)
         act_glyphs = get_action_glyphs()
 
@@ -1132,6 +1132,12 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=Fals
     kwargs.setdefault('change_add_pause', False)
     kwargs.setdefault('time_reference', 'previous_tweet')#previous_tweet or reference_tweet
     kwargs.setdefault('sort_action_words', False)
+    
+    all_bloc_symbols = kwargs.get('all_bloc_symbols', {})
+
+    if( is_symbols_good(all_bloc_symbols) is False ):
+        logger.error(f'\nadd_bloc_sequences(): all_bloc_symbols is corrupt, so returning')
+        return {}
 
     days_segment_count = kwargs.get('days_segment_count', -1)
     bloc_alphabets = kwargs.get('bloc_alphabets', ['action', 'content_syntactic', 'content_semantic_entity'])#additional valid bloc_alphabets: change, content_syntactic_with_pauses, action_content_syntactic
@@ -1169,43 +1175,43 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=Fals
 
         ex_txt = get_twt_text_exclusively( twt[twt_text_ky], twt['entities'] )
         
-        delta_seconds, dur_glyph = get_pause(twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
+        delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         twt['bloc']['bloc_sequences'] = {}
 
         if( 'action' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['action'] = get_bloc_action_seq( twt, delta_seconds, dur_glyph )
+            twt['bloc']['bloc_sequences']['action'] = get_bloc_action_seq( all_bloc_symbols['bloc_alphabets']['action'], twt, delta_seconds, dur_glyph )
 
         if( 'content_syntactic' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['content_syntactic'] = get_bloc_content_syn_seq(twt, content_syntactic_add_pause=False, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
+            twt['bloc']['bloc_sequences']['content_syntactic'] = get_bloc_content_syn_seq(all_bloc_symbols['bloc_alphabets']['content_syntactic'], twt, content_syntactic_add_pause=False, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
 
         if( 'content_syntactic_with_pauses' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['content_syntactic_with_pauses'] = get_bloc_content_syn_seq(twt, content_syntactic_add_pause=True, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
+            twt['bloc']['bloc_sequences']['content_syntactic_with_pauses'] = get_bloc_content_syn_seq(all_bloc_symbols['bloc_alphabets']['content_syntactic'], twt, content_syntactic_add_pause=True, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
 
         if( 'content_semantic_entity' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['content_semantic_entity'] = get_bloc_content_sem_ent_seq(twt, content_semantic_add_pause=False, gen_rt_content=gen_rt_content, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
+            twt['bloc']['bloc_sequences']['content_semantic_entity'] = get_bloc_content_sem_ent_seq( all_bloc_symbols['bloc_alphabets']['content_semantic_entities'], twt, content_semantic_add_pause=False, gen_rt_content=gen_rt_content, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
         
         if( 'content_semantic_sentiment' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['content_semantic_sentiment'] = get_bloc_content_sem_sent_seq(twt, txt_key=twt_text_ky, delta_seconds=delta_seconds, dur_glyph=dur_glyph, content_syntactic_seq='')
+            twt['bloc']['bloc_sequences']['content_semantic_sentiment'] = get_bloc_content_sem_sent_seq( all_bloc_symbols['bloc_alphabets']['content_semantic_sentiment'], twt, txt_key=twt_text_ky, delta_seconds=delta_seconds, dur_glyph=dur_glyph, content_syntactic_seq='')
 
         if( 'change' in bloc_alphabets ):
-            twt['bloc']['bloc_sequences']['change'] = get_bloc_change_seq(twt, prev_twt, delta_seconds=delta_seconds, dur_glyph=dur_glyph, fold_start_count=kwargs['fold_start_count'], include_time=kwargs['change_add_pause'])
+            twt['bloc']['bloc_sequences']['change'] = get_bloc_change_seq( all_bloc_symbols['bloc_alphabets']['change'], twt, prev_twt, delta_seconds=delta_seconds, dur_glyph=dur_glyph, fold_start_count=kwargs['fold_start_count'], include_time=kwargs['change_add_pause'])
 
         if( 'action_content_syntactic' in bloc_alphabets ):
-            tmp_cnt = get_bloc_content_syn_seq(twt, content_syntactic_add_pause=False, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
-            twt['bloc']['bloc_sequences']['action_content_syntactic'] = get_bloc_action_seq( twt, delta_seconds, dur_glyph, content_syntactic_seq=tmp_cnt['seq'] )
+            tmp_cnt = get_bloc_content_syn_seq(all_bloc_symbols['bloc_alphabets']['content_syntactic'], twt, content_syntactic_add_pause=False, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
+            twt['bloc']['bloc_sequences']['action_content_syntactic'] = get_bloc_action_seq( all_bloc_symbols['bloc_alphabets']['action'], twt, delta_seconds, dur_glyph, content_syntactic_seq=tmp_cnt['seq'] )
 
         add_bloc_segments(twt, segment_id, bloc_segments)
         prev_twt = twt
     
     if( 'action_content_syntactic' in bloc_alphabets ):
-        fmt_action_content_syntactic_bloc(bloc_segments['segments'], 'action_content_syntactic')
+        fmt_action_content_syntactic_bloc(all_bloc_symbols['bloc_alphabets']['time'], bloc_segments['segments'], 'action_content_syntactic')
     if( 'content_syntactic_with_pauses' in bloc_alphabets ):
-        fmt_action_content_syntactic_bloc(bloc_segments['segments'], 'content_syntactic_with_pauses')
+        fmt_action_content_syntactic_bloc(all_bloc_symbols['bloc_alphabets']['time'], bloc_segments['segments'], 'content_syntactic_with_pauses')
     
     if( kwargs['sort_action_words'] is True ):
         #must be after fmt_action_content_syntactic_bloc() is called
-        sort_action_words( bloc_segments['segments'], 'action' )
-        sort_action_words( bloc_segments['segments'], 'action_content_syntactic' )
+        sort_action_words( all_bloc_symbols['bloc_alphabets']['time'], bloc_segments['segments'], 'action' )
+        sort_action_words( all_bloc_symbols['bloc_alphabets']['time'], bloc_segments['segments'], 'action_content_syntactic' )
 
     #measure to enable empty tweets have empty bloc - start
     #caution keys tight coupling with twt['bloc']['bloc_sequences']
@@ -1382,15 +1388,49 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
 
     return payload
 
+def is_symbols_good(all_bloc_symbols):
+
+    if( len(all_bloc_symbols) == 0 or isinstance(all_bloc_symbols, dict) is False ):
+        logger.error('\nis_symbols_good(): len(all_bloc_symbols) == 0 or isinstance(all_bloc_symbols, dict) is False, returning')
+        return False
+
+    if( 'bloc_alphabets' in all_bloc_symbols ):
+        for alph in ['action', 'time', 'content_syntactic', 'change', 'content_semantic_entities', 'content_semantic_sentiment']:
+            
+            if( alph not in all_bloc_symbols['bloc_alphabets'] ):
+                logger.error( '\nis_symbols_good(): {} alphabet not in {}, returning'.format(alph, all_bloc_symbols['bloc_alphabets'].keys()) )
+                return False
+
+            if( len(all_bloc_symbols['bloc_alphabets'][alph]) == 0 ):
+                logger.error( "\nis_symbols_good(): len(all_bloc_symbols['bloc_alphabets']['{}']) == 0, returning".format(alph) )
+                return False
+
+    return True
+
+def f1_time_function(symbols):
+    
+    for symb_key, symb_val in symbols.items():
+        if( symb_key == 'blank_mark' ):
+            continue
+
+        symbols[symb_key]['symbol'] = '.'
+
 def gen_bloc_for_users(screen_names_or_ids, bearer_token, consumer_key, consumer_secret, access_token, access_token_secret, max_pages=1, following_lookup=False, timeline_startdate=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), timeline_scroll_by_hours=None, ngram=1, **kwargs):
     
     kwargs.setdefault('no_screen_name', False)
-    kwargs.setdefault('bloc_symbols_path', '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__))))
+    bloc_symbols_file = kwargs.get('bloc_symbols_file', None)
+    
+    bloc_symbols_file = '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__))) if bloc_symbols_file is None else bloc_symbols_file
+    all_bloc_symbols = getDictFromFile(bloc_symbols_file)
+    
+    if( is_symbols_good(all_bloc_symbols) is False ):
+        logger.warning(f'\ngen_bloc_for_users(): all_bloc_symbols is corrupt (bloc_symbols_file: {bloc_symbols_file}), so returning')
+        return []
 
-    all_bloc_symbols = getDictFromFile(kwargs['bloc_symbols_path'])
-        
-    print('all_bloc_symbols:', all_bloc_symbols)
+    if( kwargs.get('time_function', 'f1') == 'f1' ):
+        f1_time_function(all_bloc_symbols['bloc_alphabets']['time'])
 
+    kwargs['all_bloc_symbols'] = all_bloc_symbols
     if( bearer_token == '' ):
         oauth_or_ostwt = OAuth1Session(consumer_key, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_token_secret)
     else:

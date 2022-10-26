@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-desc = """Behavioral Language for Online Classification (BLOC): A general language for modeling the behavior of social media users."""
+desc = """Behavioral Language for Online Classification (BLOC): A General Language for Modeling Social Media Account Behavior."""
 
 __appversion__ = None
 
@@ -14,10 +14,10 @@ setup(
     name='bloc',
     version=__appversion__,
     description=desc,
-    long_description='See: https://github.iu.edu/anwala/bloc',
+    long_description='See: https://github.com/anwala/bloc',
     author='Alexander C. Nwala',
-    author_email='anwala@iu.edu',
-    url='https://github.iu.edu/anwala/bloc',
+    author_email='acnwala@wm.edu',
+    url='https://github.com/anwala/bloc',
     packages=find_packages(),
     license="MIT",
     classifiers=[
@@ -25,6 +25,11 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
+    package_data={
+        'bloc': [
+            './symbols.json'
+        ]
+    },
     install_requires=[
         'numpy',
         'osometweet',

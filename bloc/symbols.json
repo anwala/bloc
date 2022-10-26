@@ -1,0 +1,74 @@
+{
+    "description": "BLOC alphabets. Unique symbol have been picked to ensure mixing of alphabets.",
+    "created_datetime": "2022-10-26T13:43:00Z",
+    "bloc_alphabets":
+    {
+        "action": 
+        {
+            "friend_reply":             {"symbol": "P", "description": "(Reply a friend (can't be checked until friendship relationship assigned))"},
+            "non_friend_reply":         {"symbol": "p", "description": "(Reply a non-friend)"},
+            "friend_rt":                {"symbol": "R", "description": "(Retweet a friend (can't be checked until friendship relationship assigned))"},
+            "non_friend_rt":            {"symbol": "r", "description": "(Retweet a non-friend)"},
+            "tweet":                    {"symbol": "T", "description": "(Tweet)"},
+            "self_reply":               {"symbol": "π", "description": "(Reply self)"},
+            "self_rt":                  {"symbol": "ρ", "description": "(Retweet self)"}
+        },
+        "time":
+        {
+            "blank_mark":                {"symbol": "",  "description": "Symbol when pause < blank_mark secs"},
+            "under_minute_mark":         {"symbol": "□", "description": "Symbol when pause < minute_mark mins"},
+            "under_hour_mark":           {"symbol": "⚀", "description": "Symbol when pause < hour"},
+            "under_day_mark":            {"symbol": "⚁", "description": "Symbol when pause < day"},
+            "under_week_mark":           {"symbol": "⚂", "description": "Symbol when pause < week"},
+            "under_month_mark":          {"symbol": "⚃", "description": "Symbol when pause < month"},
+            "under_year_mark":           {"symbol": "⚄", "description": "Symbol when pause < year"},
+            "over_year_mark":            {"symbol": "⚅", "description": "Symbol when pause ≥ year"}
+        },
+        "content_syntactic": 
+        {
+            "media":                     {"symbol": "E", "description": "Media"},
+            "hashtag":                   {"symbol": "H", "description": "Hashtag"},
+            "cashtag":                   {"symbol": "¤", "description": "Cashtag"},
+            "friend_mention":            {"symbol": "M", "description": "Mention of friend (can't be checked until friendship relationship assigned)"},
+            "non_friend_mention":        {"symbol": "m", "description": "Mention of non-friend"},
+            "quote_url":                 {"symbol": "q", "description": "Quote URL"},
+            "self_quote":                {"symbol": "φ", "description": "Quote self"},
+            "text":                      {"symbol": "t", "description": "Text"},
+            "url":                       {"symbol": "U", "description": "URL"}
+        },
+        "change": 
+        {
+            "profile_appearance_change": {"symbol": "a", "description": "Profile appearance change"},
+            "delete_tweet":              {"symbol": "D", "description": "Delete tweet"},
+            "description_change":        {"symbol": "d", "description": "Description change"},
+            "follow_someone":            {"symbol": "F", "description": "Follow someone"},
+            "unfollow_someone":          {"symbol": "f", "description": "Unfollow someone"},
+            "profile_location_change":   {"symbol": "g", "description": "Profile location change"},
+            "geo_location_change":       {"symbol": "G", "description": "geographical location change (see coordinates and place)"},
+            "language_change":           {"symbol": "λ", "description": "Language change"},
+            "like_tweet":                {"symbol": "L", "description": "Like tweet"},
+            "unlike_tweet":              {"symbol": "l", "description": "Unlike tweet"},
+            "name_change":               {"symbol": "n", "description": "Name change"},
+            "handle_change":             {"symbol": "N", "description": "Handle change"},
+            "source_change":             {"symbol": "s", "description": "Source change"},
+            "profile_url_change":        {"symbol": "u", "description": "Profile URL change"},
+            "follower_gain":             {"symbol": "W", "description": "Gained follower(s)"},
+            "follower_loss":             {"symbol": "w", "description": "Lost follower(s)"}
+
+        },
+        "content_semantic_entities": 
+        {
+            "person":                    {"symbol": "⚇", "description": "Person (e.g., Barack Obama, Daniel, or George W. Bush)"},   
+            "place":                     {"symbol": "⌖", "description": "Place (e.g., Detroit, Cali, or 'San Francisco, California')"},   
+            "organization":              {"symbol": "⋈", "description": "Organization (e.g., Chicago White Sox, IBM)"},   
+            "product":                   {"symbol": "x", "description": "Product (e.g., Mountain Dew, Mozilla Firefox)"},   
+            "other":                     {"symbol": "⊛", "description": "Other (e.g., Diabetes, Super Bowl 50)"}
+        },
+        "content_semantic_sentiment": 
+        {
+            "positive":                  {"symbol": "⋃", "description": "Positive"},
+            "neutral":                   {"symbol": "-", "description": "Neutral"},
+            "negative":                  {"symbol": "⋂", "description": "Negative"}
+        }
+    }
+}

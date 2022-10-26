@@ -36,7 +36,8 @@ def get_generic_args():
     parser.add_argument('-a', '--analyze', action='store_true', help='Analyze (n-gram, vector encoding, PCA) group of screen_names')
     parser.add_argument('--ansi-code', default='91m', help='Color code for BLOC action string. Blank means no color.')
     parser.add_argument('--bloc-alphabets', default=['action', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment'], nargs='+', choices=['action', 'change', 'content_syntactic', 'content_syntactic_with_pauses', 'content_semantic_entity', 'content_semantic_sentiment',  'action_content_syntactic'], help='BLOC alphabets to draw letters from.')    
-    
+    parser.add_argument('--bloc-symbols-file', help='User-supplied JSON file containing BLOC alphabet symbols.')
+
     parser.add_argument('--analyze-matrix-key', default='tf_idf_matrix', choices=['tf_matrix', 'tf_matrix_normalized', 'tf_idf_matrix'], help='For analyze: extract tf_matrix or tf_matrix_normalized (l1 normalized)')
     parser.add_argument('--analyze-training-segment-length', type=int, default=1, help='For analyze: number of time segment to use for training bloc vector model.')
     parser.add_argument('--analyze-bloc-dimensions', default='action_extended', help='For analyze: dimension(s) (comma-delimited) to extract BLOC sequences from. Dimension options are "action_extended," "action_content_extended," "content_syntactic_extended," and "target"')
@@ -64,6 +65,7 @@ def get_generic_args():
 
     parser.add_argument('--timeline-startdate', default='', help='Extract tweets published from --timeline-startdate in UTC (YYYY-MM-DD HH:MM:SS).')
     parser.add_argument('--timeline-scroll-by-hours', type=int, help='Starting at --timeline-startdate, scroll up (positive hours) or down (negative hours) timeline by this value to retrieve timeline tweets.')    
+    parser.add_argument('--time-function', default='f2', choices=['f1', 'f2'], help='The pause function to use to generate pause symbols. f1 is non-granular, f2 is.')
     
     return parser
 

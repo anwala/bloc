@@ -238,7 +238,7 @@ def gzipTextFile(path, txt):
 def get_color_txt(txt, ansi_code='91m'):
     return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[00m'.format(txt)
 
-def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅|()*]+)', ansi_code='91m'):
+def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅.|()*]+)', ansi_code='91m'):
 
     if( ansi_code.strip() == '' ):
         return bloc_action_str
@@ -601,9 +601,9 @@ def get_bloc_doc_lst(twts_bloc, dimensions, src='', src_class=''):
 
     return doc_lst
 
-def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pattern='[^□⚀⚁⚂⚃⚄⚅ |()*]+|[□⚀⚁⚂⚃⚄⚅]', **kwargs):
+def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pattern='[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]', **kwargs):
 
-    #bigram: r'[^ |()*]', word: '[^□⚀⚁⚂⚃⚄⚅ |()*]+|[□⚀⚁⚂⚃⚄⚅]'
+    #bigram: r'[^ |()*]', word: '[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]'
     #reconcile implementation with bloc_analyzer.py::analyze_bloc_for_users()
     bloc_variant = kwargs.get('bloc_variant', None)
 
