@@ -1271,7 +1271,7 @@ def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code):
 
         logger.info(dim + ':')
         
-        if( dim == 'action' ):
+        if( dim == 'action' or dim == 'content_semantic_sentiment' ):
             logger.info( color_bloc_action_str(bloc_seq, ansi_code=ansi_code) )
         else:
             logger.info(bloc_seq)
