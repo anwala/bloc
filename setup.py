@@ -11,7 +11,7 @@ exec(open('bloc/version.py').read())
 
 
 setup(
-    name='bloc',
+    name='twitterbloc',
     version=__appversion__,
     description=desc,
     long_description='See: https://github.com/anwala/bloc',

@@ -17,7 +17,7 @@ Even though BLOC can be applied to other social media accounts, this Python tool
 Option 1:
 
 ```bash
-$ pip install bloc
+$ pip install twitterbloc
 ```
 
 Option 2:
