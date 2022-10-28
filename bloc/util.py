@@ -389,6 +389,10 @@ def gen_folded_vocab( tf_matrix, bloc_variant ):
 
     return new_vocab
 
+def get_default_symbols():
+    bloc_symbols_file = '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__)))
+    return getDictFromFile(bloc_symbols_file)
+
 def gen_bloc_variant_tf_mat( tf_matrix, bloc_variant ):
 
     if( 'tf_matrix' not in tf_matrix or 'vocab' not in tf_matrix or 'type' not in bloc_variant ):
@@ -649,6 +653,9 @@ def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pa
 
 def conv_tf_matrix_to_json_compliant(tf_mat):
     
+    if( 'vocab' in tf_mat ):
+        tf_mat['vocab'] = list(tf_mat['vocab'])
+
     for opt in ['tf_matrix', 'tf_matrix_normalized', 'tf_idf_matrix']:
         if( opt not in tf_mat ):
             continue
@@ -713,7 +720,7 @@ def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-
             payload['vocab'] = vocab
         else:
             payload['tf_matrix'] = count_vectorizer.fit_transform(doc_lst)
-            payload['vocab'] = count_vectorizer.get_feature_names()
+            payload['vocab'] = count_vectorizer.get_feature_names_out()
 
         if( kwargs['tf_matrix_norm'] != '' ):
             payload['tf_matrix_normalized'] = normalize(payload['tf_matrix'], norm=kwargs['tf_matrix_norm'], axis=1)

@@ -1,6 +1,10 @@
 experiments/*
 .DS_Store
 ._.DS_Store
+*.pyc
+
 build
-bloc.egg-info
+/dist/
+/*.egg-info
+/*.egg
 __pycache__
