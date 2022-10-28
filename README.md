@@ -39,7 +39,7 @@ $ cd bloc/; pip install .; cd ..; rm -rf bloc;
 
 The image below outlines the BLOC strings for a sequence of three tweets (a reply, an original tweet, and a retweet) by the [`@NASA`](https://twitter.com/nasa) account. Using the `action` alphabet, the sequence can be represented by three single-letter words `p.T.r` separated by dots. Using the `content_syntactic` alphabet, it can be represented by these three words `(Emt)(mmt)(mmmmmUt)` enclosed in parentheses.
 
-<img src="misc/nasa_bloc_timeline.png" alt="BLOC action and content strings for NASA" height="300">
+<img src="misc/nasa_bloc_timeline.png" alt="BLOC action and content strings for NASA" height="350">
 
 ## BLOC Alphabets (Code vs. Paper)
 
