@@ -31,6 +31,9 @@ def get_generic_args():
 
     parser.add_argument('--blank-mark', type=int, default=60, help='Actions done under --blank-mark (in seconds) are assigned blank prefix.')
     parser.add_argument('--minute-mark', type=int, default=5, help='Actions done under --minute-mark are assigned the □ prefix.')
+
+    parser.add_argument('--segmentation-type', default='week_number', choices=['week_number', 'day_of_year_bin', 'yyyy-mm-dd'], help='How to segment BLOC string. Segments of strings are separated by |. If day_of_year_bin selected, use --days-segment-count to change the number of days marking segment boundaries.')
+    parser.add_argument('--days-segment-count', type=int, default=1, help='For --segmentation-type=day_of_year_bin. This value determines the number of days marking segment boundaries.')
     
     #alphabetical
     parser.add_argument('-a', '--analyze', action='store_true', help='Analyze (n-gram, vector encoding, PCA) group of screen_names')
@@ -79,6 +82,11 @@ def proc_req(args):
         except:
             logger.error('\nError parsing datetime: ' + params['timeline_startdate'] + ' while expecting %Y-%m-%d %H:%M:%S')
             return
+
+    if( params['segmentation_type'] != 'day_of_year_bin' ):
+        #in generator.py.add_bloc_sequences(), if days_segment_count > 0, day_of_year_bin segmentation type is activated irrespective of the value of segmentation_type,
+        #so set days_segment_count to -1 when segmentation_type is not day_of_year_bin to avoid switching it on.
+        params['days_segment_count'] = -1
   
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )

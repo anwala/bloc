@@ -1,7 +1,7 @@
 ## Behavioral Language for Online Classification (BLOC)
-BLOC is a general language that represents the behaviors of social media accounts irrespective of class (e.g., human or cyborg or bot) or intent (e.g., malicious or benign). BLOC represents behaviors as words consisting of letters drawn from multiple alphabets (e.g., `action`). BLOC words map to features which aid in the study of account behaviors, bot and coordination detection, etc.
+BLOC is a language that represents the behaviors of social media accounts irrespective of class (e.g., human or cyborg or bot) or intent (e.g., malicious or benign). BLOC represents behaviors as words consisting of letters drawn from multiple alphabets (e.g., `action` and `content_syntactic`). BLOC words map to features which aid in the study of behaviors, bot and coordination detection, etc.
 
-For a comprehensive description of BLOC, please see the BLOC paper, [A General Language for Modeling Social Media Account Behavior](#). To cite, kindly use:
+Even though BLOC can be applied to other social media accounts, this Python tool supports Twitter exclusively. For a comprehensive description of BLOC, please see the BLOC paper, [A General Language for Modeling Social Media Account Behavior](#). To cite, kindly use:
 ```
 @techreport{nwala_flammini_menczer,
   author={Nwala, Alexander C. and Flammini, Alessandro and Menczer, Filippo},
@@ -15,14 +15,18 @@ For a comprehensive description of BLOC, please see the BLOC paper, [A General L
 
 ## Installation
 Option 1:
+
 ```bash
 $ pip install bloc
 ```
+
 Option 2:
+
 ```bash
 $ git clone https://github.com/anwala/bloc.git
 $ cd bloc/; pip install .; cd ..; rm -rf bloc;
 ```
+
 Option 3 (Install inside Docker container): 
 
 ```bash
@@ -30,32 +34,33 @@ $ docker run -it --rm --name BLOC -v "$PWD":/usr/src/myapp -w /usr/src/myapp pyt
 $ git clone https://github.com/anwala/bloc.git
 $ cd bloc/; pip install .; cd ..; rm -rf bloc;
 ```
+
 ## BLOC example
 
-The image below illustrates the BLOC strings for a sequence of three tweets (a reply, an original tweet, and a retweet) by the [`@NASA`](https://twitter.com/nasa) account. Using the action alphabet, the sequence can be represented by three single-letter words `p.T.r` separated by dots. Using the `content` alphabet, it can be represented by these three words `(Emt)(mmt)(mmmmmUt)` enclosed in parentheses.
+The image below outlines the BLOC strings for a sequence of three tweets (a reply, an original tweet, and a retweet) by the [`@NASA`](https://twitter.com/nasa) account. Using the `action` alphabet, the sequence can be represented by three single-letter words `p.T.r` separated by dots. Using the `content_syntactic` alphabet, it can be represented by these three words `(Emt)(mmt)(mmmmmUt)` enclosed in parentheses.
 
 <img src="misc/nasa_bloc_timeline.png" alt="BLOC action and content strings for NASA" height="300">
 
 ## BLOC Alphabets (Code vs. Paper)
 
 More alphabets are implemented here compared to the BLOC paper ([*A General Language for Modeling Social Media Account Behavior*](https://github.com/anwala/general-language-behavior)). Specifically, this BLOC tool implements these [alphabets](/blob/main/bloc/symbols.json):
-* Action
-* Content-Syntactic
-* Content-Semantic-Sentiment
-* Change
-* Time
+* `action`
+* `content_syntactic`
+* `content_semantic_sentiment`
+* `change`
+* `time` aka `pause`
 
 The paper introduced the Action (which was combined with Pause aka Time) and Content alphabets. Also note that the Pause symbols implemented here differ from those introduced in the paper:
 
 Pause symbols implemented:
 * blank symbol (very short time)
-* □ - Pause (under minute_mark)
-* ⚀ - Pause (under hour)
-* ⚁ - Pause (under day)
-* ⚂ - Pause (under week)
-* ⚃ - Pause (under month)
-* ⚄ - Pause (under year)
-* ⚅ - Pause (over year)
+* □ - pause under minute_mark
+* ⚀ - pause under hour
+* ⚁ - pause under day
+* ⚂ - pause under week
+* ⚃ - pause under month
+* ⚄ - pause under year
+* ⚅ - pause over year
 
 Pause symbols introduced in paper:
 
@@ -68,13 +73,70 @@ For both paper and code, the dot (`.`) symbol is used when time granularity is n
 
 ### Basic command-line usage:
 BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command generates BLOC for [`OSoMe_IU`](https://twitter.com/OSoMe_IU/) tweets for a maximum of 4 pages (`-m 4`; 20 tweets per page), and saves the BLOC strings with tweets (`--keep-tweets`) in osome_bloc.json (`-o osome_bloc.json`):
-  ```bash
+```bash
   $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-secret="foo" --access-token="bar" --access-token-secret="bar" OSoMe_IU
+```
+<details>
+  <summary>Output:</summary>
+  
+  ```python
+  @OSoMe_IU's BLOC for 12 week(s), (84 day(s), 7:14), 80 tweet(s) from 2022-08-03 01:10:44 to 2022-10-26 08:24:49
+  action:
+  T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p 
+
+  change:
+  (s)(s)(s)(s) | (s)(λ)(λ) | (s)(s) | (s)(s)(s) | (s)(s) | (s)(s)(s) | (λ)(λ)(s) | (s)(s) | (s) | (s) 
+
+  content_syntactic:
+  (Uqt) | (mmmUt)(HmmUt)(mmUφt)(Emmt)(Ut) | (mmmqt) | (EUt)(t)(Ut)(Ut) | (Et)(mUt) | (Ut)(mmqt) | (Ut)(Emt)(mmt)(mmt)(mt)(mUt) | (mmUt)(EUt)(Uqt) | (t)(t)(t) | (Ut)(mqt) | (mUt)(Ut) | (t) 
+
+  content_semantic_entity:
+
+
+  content_semantic_sentiment:
+  ⋃ | ⚂⋃⚁⋃⚁⋃⚀-⚂-⚁⋂⚀⋃⚁⋃⚀⋃⚁⋂⚀⋂⚂⋂⚂⋃ | ⚂⋃⚁⋃⚂⋃ | ⚂-⚂⋃ | ⚁⋂⚁⋃⋂⚂⋃⚂⋃⚂⋃ | ⚁-⚂-⚂⋃ | ⚂-⚂⋃⚀⋃⚂⋃ | ⚂⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚁⋃⚁-⚁⋂⋃⚂- | ⚂-⚁⋃⚂⋃ | ⚂-⋃⚁⋂⚂⋂⋃⋃⋃⋃-⋃⚁⋂ | ⚂⋃⚁-⚁⋃⋃-⋃-⋃⚂⋂⋃⚁⋃⚁⋃⚁⋃⚁⋃ | ⚂⋃□-□⋃□-⋃⚂⋃⚂⋃⚂- | ⚂⋃ 
+
+  action key:
+  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day,
+  ⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year
+  | separates week_number segments
+
+  write_output(): wrote: osome_bloc.json
   ```
-For Twitter v2:
-  ```bash
-  $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
+</details>
+
+For Twitter v2 (each page returns a maximum of 100 tweets):
+```bash
+$ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
+```
+<details>
+  <summary>Output:</summary>
+  
+  ```python
+  @OSoMe_IU's BLOC for 2 week(s), (377 day(s), 21:59), 399 tweet(s) from 2021-10-13 10:25:36 to 2022-10-26 08:24:49
+  action:
+  T⚁r⚁p⚀p⚂r□p⚂T⚂r | ⚂r⚂T⚁p□r⚁T⚂T⚁r⚁T | ⚁p⚂r | ⚂T⚁r⚁T⚁T⚁T | ⚂T⚁T⚂T⚂T⚁r⚀T | ⚂T⚁T⚂r⚁T⚁p⚂T | ⚂r⚂r | ⚂T⚁p | ⚂T⚂r⚂T | ⚂r⚂rr⚀T⚂p | ⚂T⚁T⚂T⚁T | ⚂T⚁T | ⚃r□r⚂T | ⚂T⚂r | ⚂T⚁T⚁r⚂Tππ⚀π⚂T | ⚂r⚂T⚁r⚁T⚁r⚂T | ⚁T⚁r⚂T⚂πT⚀r⚁r□Tr | ⚂T⚁r⚂T⚁T⚁r⚀π⚁p□ρ | ⚂p⚂r⚂r⚀r□r⚁r | ⚂r⚁r⚁T⚂r⚁T | ⚂T⚂p⚀p⚀p⚂T | ⚂r⚁T⚂πTππππ | ⚂r⚂r | ⚂r⚁r⚁T⚀p⚀T⚂r⚁T | ⚂T⚁r⚁r⚁Tππππππ⚂r⚂T | ⚂r⚂p⚂p□r⚂r⚁Tπ | ⚂r⚁T⚁T⚁T⚁r⚁r⚁p⚁T⚂p | ⚂T⚂r⚁T⚂r⚁r | ⚂T⚁r⚁T⚁πTπππππππ⚁rrr⚁T⚁r⚁rrp⚁rr□r⚁r⚂rr | ⚁T⚁p⚂T□r⚁Tπππππ⚂T⚁T⚂T⚁T | ⚁T⚁r⚁r⚁T⚀T⚁T⚀rr□rr⚁Tπππππ⚁T⚁r⚁r⚁r⚁T⚁T⚁r⚁T⚀r | ⚁r⚀r□r⚁r⚁T⚁r⚁r⚁r⚂T⚀p⚂T⚂p⚂T | ⚁T⚁T⚀T⚂r⚁T⚁T⚁T⚁r⚁r⚁r | ⚂T⚀r⚁rr⚁T⚂T⚁T⚂T⚁r⚁r⚁rr□r | ⚁r⚁T⚁πTπππ⚂Trr⚁r⚁T⚁rrrrr | ⚂T⚁T⚀π⚁p⚁r⚂T⚀p⚀p⚁T | ⚂T⚁T⚁T⚂T⚁T | ⚂r⚂T⚁r⚁T⚁Tπ⚂r | ⚂T⚀p⚁T⚁T⚁p⚂p | ⚂T⚁r□r⚂r | ⚂T⚁T⚁r⚁T | ⚂T⚁T⚂r⚁r⚀r⚁T⚁T⚂T | ⚂r⚁p⚀T⚀T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p 
+
+  change:
+  (s)(s)(s) | (s)(s)(s) | (s) | (s)(s)(s) | (s)(s) | (s)(s) | (s) | (s)(s) | (s) | (s)(s)(s) | (s)(s)(s) | (s)(s) | (s)(s) | (λ)(λ)(s)(s) | (s)(s)(s)(s)(s)(s) | (s) | (s)(sλ)(λ) | (s)(s)(s)(s)(s) | (s)(s) | (s)(s) | (s) | (s)(s)(s)(s)(s) | (s)(s) | (s)(s)(s)(s)(sλ) | (sλ)(s)(s)(s) | (s)(sλ)(λ)(s)(s)(s)(s) | (s)(s)(s)(s)(s)(s)(s) | (s)(s)(s)(s)(s)(s)(s) | (s)(s)(s)(λ)(λ)(s)(s) | (s)(s)(s) | (s)(s)(s)(s)(s)(s) | (s)(s)(s)(s) | (s)(s)(s)(λ)(sλ)(s) | (λ)(λ)(s)(s) | (s)(s)(λ)(sλ) | (s)(s)(λ)(λ) | (s)(s) | (s)(s) | (s)(s)(s) | (s)(s)(s) | (s)(s)(s)(s) | (s)(λ)(λ) | (s)(s) | (s)(s)(s) | (s)(s) | (s)(s)(s) | (λ)(λ)(s) | (s)(s) | (s) | (s) 
+
+  content_syntactic:
+  (qt)(t)(t)(t)(HmmmmUUt) | (EHHHmt)(t)(qqt)(qt)(Uqt) | (t) | (Ut)(qt)(Ut)(qt) | (HUt)(t)(Ut)(Et)(Ut) | (Et)(qt)(EHHmUUt)(mmmt)(mUt) | (mmUt)(mmmmmmmmt) | (Ut)(Ut) | (Ut)(mt) | (mUt)(qt)(Et)(EmUUφt) | (Et)(mmUt) | (mUt) | (HHφt) | (mUt)(EUt)(mmUqt)(mmφUt)(mUt)(HUt)(qt) | (Ut)(mmUt)(mmmmmUt) | (Ut)(mmUt)(Ut)(Emt)(qt) | (UUt)(Emt)(qt)(mmmUt)(q) | (t) | (mUt)(EEEEHHt) | (EHHHmmmmmmmUt)(mmt)(mmt)(t)(mqt) | (HUqt)(Ut)(HUt)(Et)(EHt)(Et)(Et) | (HmUt)(mt)(Et)(EEEEmmmt) | (mmmmmUt)(EHmmmmUt)(EEt)(Et)(Et)(Et)(Et)(Et)(mUt) | (mmt)(t)(Emmmmmmmmmt)(mmmmUt) | (mUt)(mqt)(mmmUt)(t)(mmmmUqt)(t) | (EmmmmUt)(EmmmmUt) | (EmmmmUt)(Ut)(Et)(HmUt)(Et)(Ut)(mUt)(Et)(EmmmmUt)(t)(t)(mmmqt)(Ut) | (HmmmmUt)(mt)(HmUt)(HUt)(t)(Et)(Et)(t)(Et)(EEEEt)(Ut)(EEEEmt)(Ut) | (mUt)(HUt)(qt)(mUt)(qt)(t)(t)(t)(t)(t)(EmmmmUt)(mmUt)(mUt)(mmmUt) | (HHHHHHmUt)(EmmmmUt)(Em)(Ut)(mt)(Hmqt) | (EmmmmUt)(mUt)(mmUt)(Ut)(HUt)(mmUt) | (HmUt)(HmmUt)(HHHHHHUt)(HUt)(HmmUt) | (mmUt)(HmmqUt)(Hmmmmmt)(HUt)(HmmmφUt)(HUt)(qt)(HmUt) | (EmmmmmUt)(EHt)(t)(mmmmt)(mUt)(Emmmmmmmmmt)(mt)(mmUt) | (EmmmmmUt)(E)(Ut)(mUt)(Ut) | (mUt)(φt)(mmUt)(EEEEUt) | (EHHmmmmmUt)(mφt)(mmqt)(Ut)(mm)(mmt) | (EHmmmmmUt) | (EmmmmmUt)(EmmmmUt)(qt) | (Ut)(Hmmqt)(Emt)(HUUUqt)(mmUt) | (Ut)(mUt)(Uqt) | (mmmUt)(HmmUt)(mmUφt)(Emmt)(Ut) | (mmmqt) | (EUt)(t)(Ut)(Ut) | (Et)(mUt) | (Ut)(mmqt) | (Ut)(Emt)(mmt)(mmt)(mt)(mUt) | (mmUt)(EUt)(Uqt) | (t)(t)(t) | (Ut)(mqt) | (mUt)(Ut) | (t) 
+
+  content_semantic_entity:
+  (⋈⋈⊛⊛)(⊛⊛) | (⋈)(⊛)(⊛⊛) | (⊛⚇)(⊛⋈⊛)(⊛) | (⊛⊛)(⊛⊛)(⋈⊛)(⊛⊛⊛⊛) | (⊛⋈⊛)(⊛⊛⋈⚇⚇⚇⚇) | (⋈) | (⊛) | (⊛⊛)(⊛)(⊛) | (⚇) | (⊛) | (⊛⌖) | (⊛)(⊛⚇)(⊛)(⋈)(⊛) | (⊛⊛⊛) | (⚇⊛)(⊛)(⚇⚇) | (⊛)(⊛⊛⊛)(⊛⌖) | (⌖⌖⌖⚇) | (⊛⊛)(⊛⊛⊛⊛)(⊛⊛⊛⊛)(⚇)(⚇) | (⌖⊛)(⊛⊛⊛⌖)(⊛⌖)(⊛)(⌖⌖)(⌖⌖)(⌖) | (⊛)(⌖⌖)(⊛⊛) | (⊛)(⊛⊛⊛)(⊛)(⊛)(⊛) | (⊛)(⊛)(⚇) | (⊛⌖⌖)(⌖⊛)(⊛) | (⊛)(⊛) | (⊛⌖)(⌖⊛⊛)(⊛⊛)(⊛⊛)(⊛⊛)(⚇⌖⋈)(⊛) | (⊛)(⊛)(⊛⌖⌖)(⊛)(⊛)(⊛)(⌖⌖)(⊛⊛⊛⊛)(⊛⊛⊛)(⚇)(⊛⋈⊛) | (⊛⊛⚇⊛)(⚇⊛)(⚇⊛)(⚇)(⊛)(⊛)(⋈⊛)(⊛⚇)(⊛⊛)(⊛⚇)(⌖⊛⚇) | (⚇⚇)(⊛⚇)(⚇⊛) | (⊛)(⊛⊛)(⊛⊛) | (⚇⊛)(⋈)(⊛⊛)(⚇⊛)(⚇⊛) | (⚇)(⊛⊛⊛⊛)(⊛⊛⊛)(⊛⊛)(⊛⊛)(⊛⊛)(⚇⊛) | (⋈⋈⚇⚇)(⚇)(⊛⚇)(⊛)(⊛⊛) | (⊛) | (⋈)(⊛⊛) | (⊛)(⊛)(⌖) | (⊛⊛) | (⊛)(⊛) | (⚇⋈)(⊛⊛⊛)(⊛⋈) | (⊛)(⊛⊛)(⊛) | (⚇⊛)(⊛⚇⊛)(⊛)(⊛⊛⊛⊛⊛⊛⊛) | (⚇⊛) | (⊛)(⊛) | (⊛)(⊛⊛) | (⊛) | (⚇)(⊛)(⊛)(⊛) | (⚇⊛)(⊛)(⊛) | (⊛) | (⊛⌖) | (⌖)(⊛) 
+
+  content_semantic_sentiment:
+  ⋂⚁-⚁⋂⚀⋃⚂-□⋃⚂⋂⚂⋂ | ⚂-⚂-⚁-□-⚁⋃⚂⋃⚁⋃⚁- | ⚁⋃⚂⋃ | ⚂⋃⚁-⚁⋂⚁⋃⚁⋃ | ⚂-⚁-⚂⋃⚂⋃⚁-⚀⋃ | ⚂⋃⚁-⚂⋃⚁⋃⚁⋃⚂⋃ | ⚂⋂⚂⋂ | ⚂⋃⚁⋃ | ⚂-⚂⋃⚂- | ⚂⋃⚂⋃⋃⚀⋂⚂- | ⚂⋂⚁-⚂⋂⚁⋃ | ⚂⋃⚁⋃ | ⚃⋃□-⚂⋃ | ⚂⋃⚂⋃ | ⚂⋂⚁⋃⚁-⚂⋃⋃⋃⚀⋂⚂⋃ | ⚂⋂⚂⋃⚁-⚁⋃⚁-⚂- | ⚁⋃⚁⋂⚂⋃⚂⋃⋃⚀-⚁⋃□⋃- | ⚂⋃⚁⋃⚂⋂⚁-⚁⋃⚀⋃⚁-□⋂ | ⚂-⚂⋃⚂-⚀⋃□-⚁- | ⚂⋃⚁⋂⚁⋃⚂⋃⚁⋂ | ⚂⋃⚂⋃⚀⋃⚀⋃⚂⋂ | ⚂⋂⚁⋃⚂⋃-⋃⋃⋃⋂ | ⚂⋃⚂⋃ | ⚂-⚁⋃⚁⋃⚀⋃⚀⋂⚂⋂⚁⋃ | ⚂⋃⚁-⚁-⚁⋃⋂⋃⋃⋃--⚂⋃⚂- | ⚂⋃⚂⋃⚂-□⋃⚂⋃⚁⋃- | ⚂⋃⚁-⚁-⚁⋃⚁⋃⚁⋃⚁-⚁-⚂- | ⚂⋃⚂⋃⚁⋃⚂⋃⚁⋃ | ⚂⋃⚁⋃⚁⋂⚁⋃⋃⋃--⋃⋃⋂⋃⚁-⋃⋃⚁-⚁-⚁⋃-⋃⚁⋃-□⋃⚁⋃⚂⋃⋃ | ⚁⋃⚁-⚂⋃□-⚁⋃⋃⋂⋃⋃⋂⚂-⚁⋃⚂-⚁- | ⚁⋂⚁⋂⚁⋃⚁⋂⚀⋃⚁⋃⚀⋃⋃□⋃⋃⚁⋃⋂⋂⋃⋃-⚁⋃⚁⋃⚁⋃⚁-⚁⋃⚁⋃⚁⋂⚁⋃⚀⋃ | ⚁⋂⚀⋃□⋃⚁⋃⚁-⚁⋃⚁-⚁-⚂⋃⚀-⚂⋃⚂-⚂- | ⚁⋃⚁⋃⚀-⚂⋃⚁⋃⚁⋂⚁⋃⚁⋃⚁⋃⚁⋂ | ⚂⋃⚀⋃⚁--⚁-⚂⋃⚁⋃⚂⋃⚁-⚁⋂⚁--□- | ⚁⋃⚁⋂⚁⋃⋃--⋃⚂⋂-⋃⚁⋃⚁-⚁⋃⋂⋃⋃- | ⚂⋃⚁⋂⚀⋂⚁⋃⚁⋂⚂-⚀-⚀⋂⚁⋂ | ⚂⋃⚁-⚁-⚂-⚁- | ⚂⋂⚂⋃⚁-⚁-⚁⋃-⚂- | ⚂⋃⚀-⚁-⚁-⚁-⚂⋂ | ⚂⋃⚁⋃□⋃⚂- | ⚂⋃⚁⋃⚁⋃⚁⋃ | ⚂-⚁⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚂- | ⚂-⚁-⚀⋃⚀⋃ | ⚂⋃⚁⋃⚁⋃⚀-⚂-⚁⋂⚀⋃⚁⋃⚀⋃⚁⋂⚀⋂⚂⋂⚂⋃ | ⚂⋃⚁⋃⚂⋃ | ⚂-⚂⋃ | ⚁⋂⚁⋃⋂⚂⋃⚂⋃⚂⋃ | ⚁-⚂-⚂⋃ | ⚂-⚂⋃⚀⋃⚂⋃ | ⚂⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚁⋃⚁-⚁⋂⋃⚂- | ⚂-⚁⋃⚂⋃ | ⚂-⋃⚁⋂⚂⋂⋃⋃⋃⋃-⋃⚁⋂ | ⚂⋃⚁-⚁⋃⋃-⋃-⋃⚂⋂⋃⚁⋃⚁⋃⚁⋃⚁⋃ | ⚂⋃□-□⋃□-⋃⚂⋃⚂⋃⚂- | ⚂⋃ 
+
+  action key:
+  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day,
+  ⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year
+  | separates week_number segments
+
+  write_output(): wrote: osome_bloc.json
   ```
+</details>
 
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 

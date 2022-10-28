@@ -1258,7 +1258,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=Fals
     
     return result
 
-def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code):
+def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code, segmentation_type):
 
     if( 'tweets' not in report or 'bloc' not in report ):
         return
@@ -1278,7 +1278,7 @@ def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code):
         
         logger.info('')
 
-    logger.info( get_timeline_key_dets(seconds_mark, minute_mark) )
+    logger.info( get_timeline_key_dets(seconds_mark, minute_mark, segmentation_type) )
 
 def get_timeline_request_dets(report):
 
@@ -1305,10 +1305,10 @@ def get_timeline_request_dets(report):
     
     return details
 
-def get_timeline_key_dets(seconds_mark, minute_mark):
+def get_timeline_key_dets(seconds_mark, minute_mark, segmentation_type):
     
     ky_dets = 'action key:\n'
-    ky_dets += f'blank: <{seconds_mark} secs, □: <{minute_mark} mins ⚀: <hour,  ⚁: <day,\n⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year\n'
+    ky_dets += f'blank: <{seconds_mark} secs, □: <{minute_mark} mins ⚀: <hour,  ⚁: <day,\n⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year\n| separates {segmentation_type} segments'
 
     return ky_dets
 
@@ -1384,7 +1384,7 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     payload = add_bloc_sequences(tweets, **kwargs)
     
     payload['elapsed_time'] = str(delta)
-    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'])
+    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'], kwargs.get('segmentation_type', None))
 
     return payload
 
