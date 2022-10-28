@@ -806,7 +806,6 @@ def get_bloc_content_syn_seq(symbols, tweet, content_syntactic_add_pause=False, 
             U - URL
     '''
 
-    #by default content-se is NOT assigned to retweets
     if( gen_rt_content is False and 'retweeted_status' in tweet ):
         return {
             'seq': '',
@@ -870,7 +869,7 @@ def get_bloc_content_syn_seq(symbols, tweet, content_syntactic_add_pause=False, 
 
             '''
                 if there are multiple mentions, recall that friendship lookup is done just once for reply or retweet
-                by default retweets are not (gen_rt_content=False) assigned BLOC labels
+                by default retweets are (gen_rt_content=True) assigned BLOC labels
                 so an checking M here will only apply to replies, and this is already done by action check, so skip M check if( twt['bloc']['src_follows_tgt'] is True ): for now
             '''
 
@@ -1037,7 +1036,7 @@ def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_nu
         
     bloc_info['segmentation_type'] = segmentation_type
 
-def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=False, add_txt_glyph=True, segmentation_type='week_number', **kwargs):
+def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True, add_txt_glyph=True, segmentation_type='week_number', **kwargs):
 
     def tranfer_dets_for_stream_statuses(twt):
         
@@ -1336,7 +1335,7 @@ def get_timeline_tweets_cache_filename(cache_path, screen_name, max_pages, follo
 
 def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, following_lookup=False, timeline_startdate='', timeline_scroll_by_hours=None, **kwargs):
 
-    kwargs.setdefault('gen_rt_content', False)
+    kwargs.setdefault('gen_rt_content', True)
     
     kwargs.setdefault('cache_path', '')
     kwargs.setdefault('cache_read', False)
