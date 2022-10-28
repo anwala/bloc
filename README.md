@@ -142,7 +142,7 @@ For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
 ### Python script usage:
 
-Generate BLOC from list of `OSoMe_IU`'s tweets stored in a list `osome_iu_tweets_lst` with `add_bloc_sequences()`:
+Generate BLOC from list of `OSoMe_IU`'s tweet `dict` objects stored in a list `osome_iu_tweets_lst` with `add_bloc_sequences()`:
 ```python
 from bloc.generator import add_bloc_sequences
 from bloc.util import get_default_symbols
@@ -171,113 +171,121 @@ Sample content of `osome_iu_bloc`:
 }
 ```
 
-Generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` using four different BLOC models defined in `bloc_settings`. The `bigram` and `word-basic` models were used in the BLOC paper. The rest are experimental: 
-```python
-from bloc.generator import add_bloc_sequences
-from bloc.util import get_default_symbols
-from bloc.util import conv_tf_matrix_to_json_compliant
-from bloc.util import get_bloc_doc_lst
-from bloc.util import get_bloc_variant_tf_matrix
+<details>
+  <summary>Generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` using four different BLOC models defined in `bloc_settings`. The `bigram` and `word-basic` models were used in the BLOC paper. The rest are experimental: </summary>
+  
+  ```python
+  from bloc.generator import add_bloc_sequences
+  from bloc.util import get_default_symbols
+  from bloc.util import conv_tf_matrix_to_json_compliant
+  from bloc.util import get_bloc_doc_lst
+  from bloc.util import get_bloc_variant_tf_matrix
 
-minimum_document_freq = 2
-bloc_settings = [
-    {
-        'name': 'm1: bigram',
-        'ngram': 2,
-        'token_pattern': '[^ |()*]',
-        'tf_matrix_norm': 'l1',#set to '' if you don't want tf_matrices['tf_matrix_normalized'] populated
-        'keep_tf_matrix': True,
-        'bloc_variant': None,
-        'bloc_alphabets': ['action', 'content_syntactic']
-    },
-    {
-        'name': 'm2: word-basic',
-        'ngram': 1,
-        'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]',
-        'tf_matrix_norm': '',
-        'keep_tf_matrix': False,
-        'sort_action_words': True,
-        'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
-        'bloc_alphabets': ['action', 'content_syntactic']
-    },
-    {
-        'name': 'm3: word-content-with-pauses',
-        'ngram': 1,
-        'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |*]+|[□⚀⚁⚂⚃⚄⚅.]',
-        'tf_matrix_norm': '',
-        'keep_tf_matrix': False,
-        'sort_action_words': True,
-        'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
-        'bloc_alphabets': ['action', 'content_syntactic_with_pauses']
-    },
-    {
-        'name': 'm4: word-action-content-session',
-        'ngram': 1,
-        'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |*]+|[□⚀⚁⚂⚃⚄⚅.]',
-        'tf_matrix_norm': '',
-        'keep_tf_matrix': False,
-        'sort_action_words': True,
-        'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
-        'bloc_alphabets': ['action_content_syntactic']
-    }
-]
-  
-all_bloc_symbols = get_default_symbols()
-for bloc_model in bloc_settings:
-    #extract BLOC sequences from list containing tweet dictionaries
-    osome_iu_bloc = add_bloc_sequences( osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-    iu_bloom_bloc = add_bloc_sequences( iu_bloom_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-    bloc_collection = [osome_iu_bloc, iu_bloom_bloc]
+  minimum_document_freq = 2
+  bloc_settings = [
+      {
+          'name': 'm1: bigram',
+          'ngram': 2,
+          'token_pattern': '[^ |()*]',
+          'tf_matrix_norm': 'l1',#set to '' if tf_matrices['tf_matrix_normalized'] not needed
+          'keep_tf_matrix': True,
+          'set_top_ngrams': True,#set to False if tf_matrices['top_ngrams']['per_doc'] not needed. If True, keep_tf_matrix must be True
+          'top_ngrams_add_all_docs': True,#set to False if tf_matrices['top_ngrams']['all_docs'] not needed. If True, keep_tf_matrix must be True
+          'bloc_variant': None,
+          'bloc_alphabets': ['action', 'content_syntactic']
+      },
+      {
+          'name': 'm2: word-basic',
+          'ngram': 1,
+          'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]',
+          'tf_matrix_norm': '',
+          'keep_tf_matrix': False,
+          'sort_action_words': True,
+          'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
+          'bloc_alphabets': ['action', 'content_syntactic']
+      },
+      {
+          'name': 'm3: word-content-with-pauses',
+          'ngram': 1,
+          'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |*]+|[□⚀⚁⚂⚃⚄⚅.]',
+          'tf_matrix_norm': '',
+          'keep_tf_matrix': False,
+          'sort_action_words': True,
+          'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
+          'bloc_alphabets': ['action', 'content_syntactic_with_pauses']
+      },
+      {
+          'name': 'm4: word-action-content-session',
+          'ngram': 1,
+          'token_pattern': '[^□⚀⚁⚂⚃⚄⚅. |*]+|[□⚀⚁⚂⚃⚄⚅.]',
+          'tf_matrix_norm': '',
+          'keep_tf_matrix': False,
+          'sort_action_words': True,
+          'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
+          'bloc_alphabets': ['action_content_syntactic']
+      }
+  ]
     
-    #generate collection of BLOC documents
-    bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src='IU', src_class='human')
-    tf_matrices = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'])
-    
-    #to get JSON serializatable version of tf_matrices: tf_matrices = conv_tf_matrix_to_json_compliant(tf_matrices)
+  all_bloc_symbols = get_default_symbols()
+  for bloc_model in bloc_settings:
+      #extract BLOC sequences from list containing tweet dictionaries
+      osome_iu_bloc = add_bloc_sequences( osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      iu_bloom_bloc = add_bloc_sequences( iu_bloom_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      bloc_collection = [osome_iu_bloc, iu_bloom_bloc]
+      
+      #generate collection of BLOC documents
+      bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src='IU', src_class='human')
+      tf_matrices = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], set_top_ngrams=bloc_model.get('set_top_ngrams', False), top_ngrams_add_all_docs=bloc_model.get('top_ngrams_add_all_docs', False))
+      
+      #to get JSON serializatable version of tf_matrices: tf_matrices = conv_tf_matrix_to_json_compliant(tf_matrices)
   ```
-  
+    
   Sample annotated & abbreviated content of `tf_matrices`:
   ```
-  {
-    "tf_matrix": [
-        {
-            "id": 0,
-            "tf_vector": [0.0, 1.0, 1.0,...,31.0, 28.0,1.0]
-        },
-        {
-            "id": 1,
-            "tf_vector": [1.0, 0.0,..., 55.0, 0.0, 3.0]
-        }
-    ],
-    "tf_matrix_normalized": [<SAME STRUCTURE AS tf_matrix>],
-    "tf_idf_matrix": [<SAME STRUCTURE AS tf_matrix>],
-    "vocab": ["E U", "E m", "E t", "H m", "T ⚀",..., "⚁ r", "⚂ T", "⚂ p", "⚂ r"],
-    "token_pattern": "[^ |()*]"
-  }
-```
+    {
+      "tf_matrix": [
+          {
+              "id": 0,
+              "tf_vector": [0.0, 1.0, 1.0,...,31.0, 28.0,1.0]
+          },
+          {
+              "id": 1,
+              "tf_vector": [1.0, 0.0,..., 55.0, 0.0, 3.0]
+          }
+      ],
+      "tf_matrix_normalized": [<SAME STRUCTURE AS tf_matrix>],
+      "tf_idf_matrix": [<SAME STRUCTURE AS tf_matrix>],
+      "vocab": ["E U", "E m", "E t", "H m", "T ⚀",..., "⚁ r", "⚂ T", "⚂ p", "⚂ r"],
+      "token_pattern": "[^ |()*]"
+    }
+  ```
+</details>
 
-A more efficient way to generate BLOC TF-IDF matrix with [`get_bloc_variant_tf_matrix()`](https://github.com/anwala/bloc/blob/cb610921aa4a65c342baf0c089a07b6fadf7c286/bloc/util.py#L544): The previous example requires all BLOC documents (`bloc_doc_lst`) to reside in memory. This could be problematic if we're processing a large collection. To remedy this, we could pass a generator to `get_bloc_variant_tf_matrix()` instead of a list of documents. For this example, we use a custom generator ([`user_tweets_generator_0()`](https://github.com/anwala/bloc/blob/fa013033069c7116f7ed2a97e9fb19cf9fe95cea/bloc/tweet_generators.py#L7)) which requires a gzip file containing tweets of a specific format (each line: `user_id \t [JSON list of tweets]`). You might need to write your own generator function that reads the tweets and generates BLOCs similar to [`user_tweets_generator_0()`](https://github.com/anwala/bloc/blob/fa013033069c7116f7ed2a97e9fb19cf9fe95cea/bloc/tweet_generators.py#L7). However, the workflow is identical after reading tweets and generating BLOC strings:
-```python
-from bloc.tweet_generators import user_tweets_generator_0
-from bloc.util import get_bloc_variant_tf_matrix
+<details>
+  <summary>A more efficient way to generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` is outlined below. The previous example requires all BLOC documents (`bloc_doc_lst`) to reside in memory. This could be problematic if we're processing a large collection. To remedy this, we could pass a generator to `get_bloc_variant_tf_matrix()` instead of a list of documents. For this example, we use a custom generator `user_tweets_generator_0()` which requires a gzip file containing tweets of a specific format (each line: `user_id \t [JSON list of tweets]`). You might need to write your own generator function that reads the tweets and generates BLOCs similar to `user_tweets_generator_0()`. However, the workflow is identical after reading tweets and generating BLOC strings: </summary>
+  
+  ```python
+  from bloc.tweet_generators import user_tweets_generator_0
+  from bloc.util import get_bloc_variant_tf_matrix
 
-minimum_document_freq = 2
-bloc_settings = [
-  {
-    'name': 'm1: bigram',
-    'ngram': 2,
-    'token_pattern': '[^ |()*]',
-    'bloc_variant': None,
-    'bloc_alphabets': ['action', 'content_syntactic']
-  }
-]
+  minimum_document_freq = 2
+  bloc_settings = [
+    {
+      'name': 'm1: bigram',
+      'ngram': 2,
+      'token_pattern': '[^ |()*]',
+      'bloc_variant': None,
+      'bloc_alphabets': ['action', 'content_syntactic']
+    }
+  ]
 
-for bloc_model in bloc_settings:
+  for bloc_model in bloc_settings:
 
-    pos_id_mapping = {}
-    gen_bloc_params = {'bloc_alphabets': bloc_model['bloc_alphabets']}
-    input_files = ['/tmp/ten_tweets.jsonl.gz']
+      pos_id_mapping = {}
+      gen_bloc_params = {'bloc_alphabets': bloc_model['bloc_alphabets']}
+      input_files = ['/tmp/ten_tweets.jsonl.gz']
 
-    doc_lst = user_tweets_generator_0(input_files, pos_id_mapping, gen_bloc_params=gen_bloc_params)
-    tf_matrices = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
-```
+      doc_lst = user_tweets_generator_0(input_files, pos_id_mapping, gen_bloc_params=gen_bloc_params)
+      tf_matrices = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
+  ```
+</details>

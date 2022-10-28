@@ -680,7 +680,7 @@ def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-
                 return {}
     
     
-    kwargs.setdefault('add_all_docs', False)
+    kwargs.setdefault('top_ngrams_add_all_docs', False)
     kwargs.setdefault('keep_tf_matrix', True)
     kwargs.setdefault('lowercase', True)
     kwargs.setdefault('min_df', 1)
@@ -743,14 +743,14 @@ def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-
         return {}
     
     if( kwargs['set_top_ngrams'] is True ):
-        calc_top_ngrams( payload, add_all_docs=kwargs['add_all_docs'] )
+        calc_top_ngrams( payload, top_ngrams_add_all_docs=kwargs['top_ngrams_add_all_docs'] )
 
     if( pos_id_mapping is not None ):
         payload = map_tf_mat_to_doc_ids(payload, pos_id_mapping)
 
     return payload
 
-def calc_top_ngrams(payload, add_all_docs=False):
+def calc_top_ngrams(payload, top_ngrams_add_all_docs=False):
 
     all_docs_tf = {}
     all_docs_total_tf = 0
@@ -768,7 +768,7 @@ def calc_top_ngrams(payload, add_all_docs=False):
         payload['top_ngrams']['per_doc'].append( single_doc_tf )
 
 
-        if( add_all_docs is True ):
+        if( top_ngrams_add_all_docs is True ):
             for tf_dct in single_doc_tf:
                 all_docs_tf.setdefault( tf_dct['term'], {'tf': 0, 'df': 0} )
                 all_docs_tf[ tf_dct['term'] ]['tf'] += int(tf_dct['term_freq'])
@@ -776,7 +776,7 @@ def calc_top_ngrams(payload, add_all_docs=False):
                 all_docs_total_tf += int(tf_dct['term_freq'])
 
     
-    if( add_all_docs is True ):
+    if( top_ngrams_add_all_docs is True ):
 
         if( all_docs_total_tf == 0 ):
             all_docs_total_tf = -1
