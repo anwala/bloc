@@ -1252,7 +1252,8 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         'bloc_segments': bloc_segments,
         'created_at_utc': datetime.utcnow().isoformat().split('.')[0] + 'Z',
         'screen_name': screen_name,
-        'user_id': user_id
+        'user_id': user_id,
+        'bloc_symbols_version': all_bloc_symbols.get('version', '')
     }
     
     return result
