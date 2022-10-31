@@ -82,7 +82,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-sec
 <details>
   <summary>Output:</summary>
   
-  ```python
+  ```
   @OSoMe_IU's BLOC for 12 week(s), (84 day(s), 7:14), 80 tweet(s) from 2022-08-03 01:10:44 to 2022-10-26 08:24:49
   action:
   T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p 
@@ -115,7 +115,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
 <details>
   <summary>Output:</summary>
   
-  ```python
+  ```
   @OSoMe_IU's BLOC for 2 week(s), (377 day(s), 21:59), 399 tweet(s) from 2021-10-13 10:25:36 to 2022-10-26 08:24:49
   action:
   T⚁r⚁p⚀p⚂r□p⚂T⚂r | ⚂r⚂T⚁p□r⚁T⚂T⚁r⚁T | ⚁p⚂r | ⚂T⚁r⚁T⚁T⚁T | ⚂T⚁T⚂T⚂T⚁r⚀T | ⚂T⚁T⚂r⚁T⚁p⚂T | ⚂r⚂r | ⚂T⚁p | ⚂T⚂r⚂T | ⚂r⚂rr⚀T⚂p | ⚂T⚁T⚂T⚁T | ⚂T⚁T | ⚃r□r⚂T | ⚂T⚂r | ⚂T⚁T⚁r⚂Tππ⚀π⚂T | ⚂r⚂T⚁r⚁T⚁r⚂T | ⚁T⚁r⚂T⚂πT⚀r⚁r□Tr | ⚂T⚁r⚂T⚁T⚁r⚀π⚁p□ρ | ⚂p⚂r⚂r⚀r□r⚁r | ⚂r⚁r⚁T⚂r⚁T | ⚂T⚂p⚀p⚀p⚂T | ⚂r⚁T⚂πTππππ | ⚂r⚂r | ⚂r⚁r⚁T⚀p⚀T⚂r⚁T | ⚂T⚁r⚁r⚁Tππππππ⚂r⚂T | ⚂r⚂p⚂p□r⚂r⚁Tπ | ⚂r⚁T⚁T⚁T⚁r⚁r⚁p⚁T⚂p | ⚂T⚂r⚁T⚂r⚁r | ⚂T⚁r⚁T⚁πTπππππππ⚁rrr⚁T⚁r⚁rrp⚁rr□r⚁r⚂rr | ⚁T⚁p⚂T□r⚁Tπππππ⚂T⚁T⚂T⚁T | ⚁T⚁r⚁r⚁T⚀T⚁T⚀rr□rr⚁Tπππππ⚁T⚁r⚁r⚁r⚁T⚁T⚁r⚁T⚀r | ⚁r⚀r□r⚁r⚁T⚁r⚁r⚁r⚂T⚀p⚂T⚂p⚂T | ⚁T⚁T⚀T⚂r⚁T⚁T⚁T⚁r⚁r⚁r | ⚂T⚀r⚁rr⚁T⚂T⚁T⚂T⚁r⚁r⚁rr□r | ⚁r⚁T⚁πTπππ⚂Trr⚁r⚁T⚁rrrrr | ⚂T⚁T⚀π⚁p⚁r⚂T⚀p⚀p⚁T | ⚂T⚁T⚁T⚂T⚁T | ⚂r⚂T⚁r⚁T⚁Tπ⚂r | ⚂T⚀p⚁T⚁T⚁p⚂p | ⚂T⚁r□r⚂r | ⚂T⚁T⚁r⚁T | ⚂T⚁T⚂r⚁r⚀r⚁T⚁T⚂T | ⚂r⚁p⚀T⚀T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p 
@@ -154,7 +154,7 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
 <details>
   <summary>Partial output of cosine similarity values across all pairs of accounts in descending order:</summary>
   
-  ```python
+  ```
     ...
     Cosine sim,
     0.9325: FoxNews vs. CNN
@@ -476,14 +476,14 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
 
 The following command generates the top BLOC words for the same accounts in Example 3. Similar to Example 3, after generating BLOC strings, it tokenizes using pauses, print the top BLOC words for individual accounts and across all accounts, and writes the output to `top_bloc_words.json`:
 
-```python
+```bash
 $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
 ```
 
 <details>
   <summary>Partial output of top BLOC words across all accounts ranked with their document frequencies (fraction of accounts that used a word):</summary>
   
-  ```python
+  ```
     ...
     Top 10 ngrams across all users, (document freq. DF, word):
       1.   1.0000 T (action)
@@ -500,7 +500,7 @@ $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets a
 <details>
   <summary>Full output of top BLOC words for individual (ranked by term frequency) and across all accounts (ranked by document frequency):</summary>
   
-  ```bash
+  ```
     print_top_ngrams():
 
     Top 10 ngrams for user FoxNews, (term freq. TF, word):
