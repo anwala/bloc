@@ -105,10 +105,10 @@ def write_output(output, payload):
             with open(output, 'w') as outfile:
                 for u in payload:
                     outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
+
+            print('\nwrite_output(): wrote:', output)
         else:
             dumpJsonToFile(output, payload, indentFlag=False)
-
-        print('\nwrite_output(): wrote:', output)
     except:
         genericErrorInfo()
 

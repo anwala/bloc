@@ -74,6 +74,7 @@ For both paper and code, the dot (`.`) symbol is used when time granularity is n
 ### Basic command-line usage:
 
 **Example 1, generate BLOC strings using Twitter v1.1 credentials**:
+
 BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command generates BLOC for [`OSoMe_IU`](https://twitter.com/OSoMe_IU/) tweets for a maximum of 4 pages (`-m 4`; 20 tweets per page), and saves the BLOC strings with tweets (`--keep-tweets`) in osome_bloc.json (`-o osome_bloc.json`):
 ```bash
 $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-secret="foo" --access-token="bar" --access-token-secret="bar" OSoMe_IU
@@ -106,6 +107,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-sec
 </details>
 
 **Example 2, generate BLOC strings using Twitter v2 credentials**:
+
 For Twitter v2 (each page returns a maximum of 100 tweets):
 ```bash
 $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
@@ -144,6 +146,7 @@ $ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="foo" OSoMe_
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
 **Example 3, compare the similarity across multiple users**:
+
 The following command generates BLOC strings for multiple accounts, `@FoxNews`, `@CNN`, `@POTUS`, `@SpeakerPelosi`, `@GOPLeader`, `@GenerateACat`, and `@storygraphbot`. Next, it tokenizes the string using pauses (`[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]`). Next, it generates TF-IDF vectors for all accounts using the BLOC words as features. Next, it computes (average) cosine similarity across all pairs, and writes the output to `accounts_sim.jsonl`:
 ```bash
 $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
@@ -470,6 +473,114 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
 </details>
 
 **Example 4, generate list of most frequent BLOC words**:
+
+The following command generates the top BLOC words for the same accounts in Example 3. Similar to Example 3, after generating BLOC strings, it tokenizes using pauses, print the top BLOC words for individual accounts and across all accounts, and writes the output to `top_bloc_words.json`:
+
+```python
+$ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+```
+
+<details>
+  <summary>Partial output of top BLOC words across all accounts ranked with their document frequencies (fraction of accounts that used a word):</summary>
+  
+  ```python
+    ...
+    Top 10 ngrams across all users, (document freq. DF, word):
+      1.   1.0000 T (action)
+      2.   0.8571 Emt (content_syntactic)
+      3.   0.7143 Ut (content_syntactic)
+      4.   0.7143 EUt (content_syntactic)
+      5.   0.7143 Emφt (content_syntactic)
+      6.   0.7143 Et (content_syntactic)
+      7.   0.5714 mUt (content_syntactic)
+      dumpJsonToFile(), wrote: top_bloc_words.json
+  ```
+</details>
+
+<details>
+  <summary>Full output of top BLOC words for individual (ranked by term frequency) and across all accounts (ranked by document frequency):</summary>
+  
+  ```bash
+    print_top_ngrams():
+
+    Top 10 ngrams for user FoxNews, (term freq. TF, word):
+      1.   0.3239 T (action)
+      2.   0.3130 Ut (content_syntactic)
+      3.   0.0125 EUt (content_syntactic)
+      4.   0.0067 λ (change)
+      5.   0.0050 TT (action)
+      6.   0.0050 mUt (content_syntactic)
+      7.   0.0017 EmUt (content_syntactic)
+      8.   0.0017 ww (change)
+
+    Top 10 ngrams for user CNN, (term freq. TF, word):
+      1.   0.2978 T (action)
+      2.   0.1853 Ut (content_syntactic)
+      3.   0.0736 EUφt (content_syntactic)
+      4.   0.0397 s (change)
+      5.   0.0240 Eφt (content_syntactic)
+      6.   0.0165 TT (action)
+      7.   0.0124 mUt (content_syntactic)
+      8.   0.0066 EUt (content_syntactic)
+
+    Top 10 ngrams for user POTUS, (term freq. TF, word):
+      1.   0.2913 T (action)
+      2.   0.1782 t (content_syntactic)
+      3.   0.0706 s (change)
+      4.   0.0506 Et (content_syntactic)
+      5.   0.0361 Ut (content_syntactic)
+      6.   0.0297 Eφt (content_syntactic)
+      7.   0.0048 Emt (content_syntactic)
+      8.   0.0048 Tπ (action)
+
+    Top 10 ngrams for user SpeakerPelosi, (term freq. TF, word):
+      1.   0.1432 T (action)
+      2.   0.1343 t (content_syntactic)
+      3.   0.1021 s (change)
+      4.   0.0488 Ut (content_syntactic)
+      5.   0.0333 Ht (content_syntactic)
+      6.   0.0277 Tπππ+ (action)
+      7.   0.0244 Et (content_syntactic)
+
+    Top 10 ngrams for user GOPLeader, (term freq. TF, word):
+      1.   0.1171 s (change)
+      2.   0.1076 r (action)
+      3.   0.0695 T (action)
+      4.   0.0390 t (content_syntactic)
+      5.   0.0381 EHmφt (content_syntactic)
+      6.   0.0333 rr (action)
+      7.   0.0286 EHt (content_syntactic)
+
+    Top 10 ngrams for user GenerateACat, (term freq. TF, word):
+      1.   0.3362 Et (content_syntactic)
+      2.   0.2388 p (action)
+      3.   0.0847 T (action)
+      4.   0.0068 pp (action)
+      5.   0.0025 Emt (content_syntactic)
+      6.   0.0008 Tp (action)
+
+    Top 10 ngrams for user storygraphbot, (term freq. TF, word):
+      1.   0.3340 UUt (content_syntactic)
+      2.   0.2716 π (action)
+      3.   0.0381 HUUt (content_syntactic)
+      4.   0.0130 T (action)
+      5.   0.0112 Tπ (action)
+      6.   0.0065 ππ (action)
+      7.   0.0037 Tππ (action)
+      8.   0.0037 Tπππ (action)
+
+    Top 10 ngrams across all users, (document freq. DF, word):
+      1.   1.0000 T (action)
+      2.   0.8571 Emt (content_syntactic)
+      3.   0.7143 Ut (content_syntactic)
+      4.   0.7143 EUt (content_syntactic)
+      5.   0.7143 Emφt (content_syntactic)
+      6.   0.7143 Et (content_syntactic)
+      7.   0.5714 mUt (content_syntactic)
+      dumpJsonToFile(), wrote: top_bloc_words.json
+
+  ```
+</details>
 
 ### Python script usage:
 
