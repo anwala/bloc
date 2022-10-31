@@ -354,6 +354,24 @@ def get_twt_text_exclusively(txt, entities):
 def get_action_glyphs():
     return ['P', 'p', 'π', 'R', 'r', 'ρ', 'T']
 
+def get_word_type(word):
+    
+    bloc_types = {
+        'action': set(get_action_glyphs()),
+        'content_syntactic': set('EHMmqφtU'),
+        'time': set('□⚀⚁⚂⚃⚄⚅.'),
+        'change': set('aDdFfgGλLlnNsuWw'),
+        'content_semantic_entities': set('⚇⌖⋈x⊛'),
+        'content_semantic_sentiment': set('⋃-⋂')
+    }
+    
+    word = set(word)
+    for typ, tokens in bloc_types.items():
+        if( len(word & tokens) > 0 ):
+            return typ
+
+    return ''
+
 def get_delta_glyph(symbols, delta_seconds, blank_mark=60, minute_mark=5):
     
     '''
@@ -1252,7 +1270,8 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         'bloc_segments': bloc_segments,
         'created_at_utc': datetime.utcnow().isoformat().split('.')[0] + 'Z',
         'screen_name': screen_name,
-        'user_id': user_id
+        'user_id': user_id,
+        'bloc_symbols_version': all_bloc_symbols.get('version', '')
     }
     
     return result
@@ -1307,7 +1326,7 @@ def get_timeline_request_dets(report):
 def get_timeline_key_dets(seconds_mark, minute_mark, segmentation_type):
     
     ky_dets = 'action key:\n'
-    ky_dets += f'blank: <{seconds_mark} secs, □: <{minute_mark} mins ⚀: <hour,  ⚁: <day,\n⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year\n| separates {segmentation_type} segments'
+    ky_dets += f'blank: <{seconds_mark} secs, □: <{minute_mark} mins ⚀: <hour,  ⚁: <day, ⚂: <week, ⚃: <month, ⚄: <year, ⚅: >year, | separates {segmentation_type} segments'
 
     return ky_dets
 

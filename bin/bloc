@@ -9,6 +9,7 @@ from datetime import datetime
 from bloc.generator import gen_bloc_for_users
 from bloc.subcommands import run_subcommands
 
+from bloc.util import dumpJsonToFile
 from bloc.util import genericErrorInfo
 from bloc.util import setLogDefaults
 from bloc.util import setLoggerDets
@@ -89,7 +90,10 @@ def proc_req(args):
         #in generator.py.add_bloc_sequences(), if days_segment_count > 0, day_of_year_bin segmentation type is activated irrespective of the value of segmentation_type,
         #so set days_segment_count to -1 when segmentation_type is not day_of_year_bin to avoid switching it on.
         params['days_segment_count'] = -1
-  
+
+    
+    params['sort_action_words'] = False if params.get('no_sort_action_words', False) is True else True
+    
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
     return gen_bloc_for_users( **params )
@@ -97,9 +101,12 @@ def proc_req(args):
 def write_output(output, payload):
 
     try:
-        with open(output, 'w') as outfile:
-            for u in payload:
-                outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
+        if( isinstance(payload, list) ):
+            with open(output, 'w') as outfile:
+                for u in payload:
+                    outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
+        else:
+            dumpJsonToFile(output, payload, indentFlag=False)
 
         print('\nwrite_output(): wrote:', output)
     except:
@@ -116,19 +123,21 @@ def main():
             print(__appversion__)
             return
 
-        bloc_subcommand = ['top_ngrams', 'sim', 'change']
+        bloc_subcommand = ['top_ngrams', 'sim']
         if( sys.argv[1] in bloc_subcommand ):
             subcommand = sys.argv[1]
             del sys.argv[1]
-    
+
+
     parser = get_generic_args(subcommand)
     args = parser.parse_args()
     
-    payload = proc_req(args)
-    run_subcommands(args, subcommand, payload)
+    bloc_payload = proc_req(args)
+    if( subcommand != '' ):
+        bloc_payload = run_subcommands(args, subcommand, bloc_payload)
 
     if( args.output is not None ):
-        write_output( args.output, payload )
+        write_output( args.output, bloc_payload )
 
 if __name__ == '__main__':
     main()

@@ -72,9 +72,11 @@ For both paper and code, the dot (`.`) symbol is used when time granularity is n
 ## Usage/Examples
 
 ### Basic command-line usage:
+
+**Example 1, generate BLOC strings using Twitter v1.1 credentials**:
 BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command generates BLOC for [`OSoMe_IU`](https://twitter.com/OSoMe_IU/) tweets for a maximum of 4 pages (`-m 4`; 20 tweets per page), and saves the BLOC strings with tweets (`--keep-tweets`) in osome_bloc.json (`-o osome_bloc.json`):
 ```bash
-  $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-secret="foo" --access-token="bar" --access-token-secret="bar" OSoMe_IU
+$ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-secret="foo" --access-token="bar" --access-token-secret="bar" OSoMe_IU
 ```
 <details>
   <summary>Output:</summary>
@@ -97,14 +99,13 @@ BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command gener
   ⋃ | ⚂⋃⚁⋃⚁⋃⚀-⚂-⚁⋂⚀⋃⚁⋃⚀⋃⚁⋂⚀⋂⚂⋂⚂⋃ | ⚂⋃⚁⋃⚂⋃ | ⚂-⚂⋃ | ⚁⋂⚁⋃⋂⚂⋃⚂⋃⚂⋃ | ⚁-⚂-⚂⋃ | ⚂-⚂⋃⚀⋃⚂⋃ | ⚂⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚁⋃⚁-⚁⋂⋃⚂- | ⚂-⚁⋃⚂⋃ | ⚂-⋃⚁⋂⚂⋂⋃⋃⋃⋃-⋃⚁⋂ | ⚂⋃⚁-⚁⋃⋃-⋃-⋃⚂⋂⋃⚁⋃⚁⋃⚁⋃⚁⋃ | ⚂⋃□-□⋃□-⋃⚂⋃⚂⋃⚂- | ⚂⋃ 
 
   action key:
-  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day,
-  ⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year
-  | separates week_number segments
+  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day, ⚂: <week, ⚃: <month, ⚄: <year, ⚅: >year, | separates week_number segments
 
   write_output(): wrote: osome_bloc.json
   ```
 </details>
 
+**Example 2, generate BLOC strings using Twitter v2 credentials**:
 For Twitter v2 (each page returns a maximum of 100 tweets):
 ```bash
 $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
@@ -130,15 +131,345 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
   ⋂⚁-⚁⋂⚀⋃⚂-□⋃⚂⋂⚂⋂ | ⚂-⚂-⚁-□-⚁⋃⚂⋃⚁⋃⚁- | ⚁⋃⚂⋃ | ⚂⋃⚁-⚁⋂⚁⋃⚁⋃ | ⚂-⚁-⚂⋃⚂⋃⚁-⚀⋃ | ⚂⋃⚁-⚂⋃⚁⋃⚁⋃⚂⋃ | ⚂⋂⚂⋂ | ⚂⋃⚁⋃ | ⚂-⚂⋃⚂- | ⚂⋃⚂⋃⋃⚀⋂⚂- | ⚂⋂⚁-⚂⋂⚁⋃ | ⚂⋃⚁⋃ | ⚃⋃□-⚂⋃ | ⚂⋃⚂⋃ | ⚂⋂⚁⋃⚁-⚂⋃⋃⋃⚀⋂⚂⋃ | ⚂⋂⚂⋃⚁-⚁⋃⚁-⚂- | ⚁⋃⚁⋂⚂⋃⚂⋃⋃⚀-⚁⋃□⋃- | ⚂⋃⚁⋃⚂⋂⚁-⚁⋃⚀⋃⚁-□⋂ | ⚂-⚂⋃⚂-⚀⋃□-⚁- | ⚂⋃⚁⋂⚁⋃⚂⋃⚁⋂ | ⚂⋃⚂⋃⚀⋃⚀⋃⚂⋂ | ⚂⋂⚁⋃⚂⋃-⋃⋃⋃⋂ | ⚂⋃⚂⋃ | ⚂-⚁⋃⚁⋃⚀⋃⚀⋂⚂⋂⚁⋃ | ⚂⋃⚁-⚁-⚁⋃⋂⋃⋃⋃--⚂⋃⚂- | ⚂⋃⚂⋃⚂-□⋃⚂⋃⚁⋃- | ⚂⋃⚁-⚁-⚁⋃⚁⋃⚁⋃⚁-⚁-⚂- | ⚂⋃⚂⋃⚁⋃⚂⋃⚁⋃ | ⚂⋃⚁⋃⚁⋂⚁⋃⋃⋃--⋃⋃⋂⋃⚁-⋃⋃⚁-⚁-⚁⋃-⋃⚁⋃-□⋃⚁⋃⚂⋃⋃ | ⚁⋃⚁-⚂⋃□-⚁⋃⋃⋂⋃⋃⋂⚂-⚁⋃⚂-⚁- | ⚁⋂⚁⋂⚁⋃⚁⋂⚀⋃⚁⋃⚀⋃⋃□⋃⋃⚁⋃⋂⋂⋃⋃-⚁⋃⚁⋃⚁⋃⚁-⚁⋃⚁⋃⚁⋂⚁⋃⚀⋃ | ⚁⋂⚀⋃□⋃⚁⋃⚁-⚁⋃⚁-⚁-⚂⋃⚀-⚂⋃⚂-⚂- | ⚁⋃⚁⋃⚀-⚂⋃⚁⋃⚁⋂⚁⋃⚁⋃⚁⋃⚁⋂ | ⚂⋃⚀⋃⚁--⚁-⚂⋃⚁⋃⚂⋃⚁-⚁⋂⚁--□- | ⚁⋃⚁⋂⚁⋃⋃--⋃⚂⋂-⋃⚁⋃⚁-⚁⋃⋂⋃⋃- | ⚂⋃⚁⋂⚀⋂⚁⋃⚁⋂⚂-⚀-⚀⋂⚁⋂ | ⚂⋃⚁-⚁-⚂-⚁- | ⚂⋂⚂⋃⚁-⚁-⚁⋃-⚂- | ⚂⋃⚀-⚁-⚁-⚁-⚂⋂ | ⚂⋃⚁⋃□⋃⚂- | ⚂⋃⚁⋃⚁⋃⚁⋃ | ⚂-⚁⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚂- | ⚂-⚁-⚀⋃⚀⋃ | ⚂⋃⚁⋃⚁⋃⚀-⚂-⚁⋂⚀⋃⚁⋃⚀⋃⚁⋂⚀⋂⚂⋂⚂⋃ | ⚂⋃⚁⋃⚂⋃ | ⚂-⚂⋃ | ⚁⋂⚁⋃⋂⚂⋃⚂⋃⚂⋃ | ⚁-⚂-⚂⋃ | ⚂-⚂⋃⚀⋃⚂⋃ | ⚂⋃⚂⋃⚁⋃⚀⋃⚁⋃⚁⋃⚁⋃⚁-⚁⋂⋃⚂- | ⚂-⚁⋃⚂⋃ | ⚂-⋃⚁⋂⚂⋂⋃⋃⋃⋃-⋃⚁⋂ | ⚂⋃⚁-⚁⋃⋃-⋃-⋃⚂⋂⋃⚁⋃⚁⋃⚁⋃⚁⋃ | ⚂⋃□-□⋃□-⋃⚂⋃⚂⋃⚂- | ⚂⋃ 
 
   action key:
-  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day,
-  ⚂:    <week, ⚃: <month, ⚄: <year, ⚅: >year
-  | separates week_number segments
+  blank: <60 secs, □: <5 mins ⚀: <hour,  ⚁: <day, ⚂: <week, ⚃: <month, ⚄: <year, ⚅: >year, | separates week_number segments
 
   write_output(): wrote: osome_bloc.json
   ```
 </details>
 
+Note that you could generate BLOC strings for multiple accounts:
+```bash
+$ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="foo" OSoMe_IU acnwala
+```
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
+
+**Example 3, compare the similarity across multiple users**:
+The following command generates BLOC strings for multiple accounts, `@FoxNews`, `@CNN`, `@POTUS`, `@SpeakerPelosi`, `@GOPLeader`, `@GenerateACat`, and `@storygraphbot`. Next, it tokenizes the string using pauses (`[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]`). Next, it generates TF-IDF vectors for all accounts using the BLOC words as features. Next, it computes (average) cosine similarity across all pairs, and writes the output to `accounts_sim.jsonl`:
+```bash
+$ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+```
+<details>
+  <summary>Partial output of cosine similarity values across all pairs of accounts in descending order:</summary>
+  
+  ```python
+    ...
+    Cosine sim,
+    0.9325: FoxNews vs. CNN
+    0.8841: POTUS vs. SpeakerPelosi
+    0.6516: SpeakerPelosi vs. GOPLeader
+    0.5752: CNN vs. POTUS
+    0.5680: POTUS vs. GOPLeader
+    0.5023: FoxNews vs. POTUS
+    0.3969: CNN vs. SpeakerPelosi
+    0.3862: CNN vs. GOPLeader
+    0.3483: FoxNews vs. SpeakerPelosi
+    0.2945: FoxNews vs. GOPLeader
+    0.2590: POTUS vs. GenerateACat
+    0.2123: GOPLeader vs. GenerateACat
+    0.2041: SpeakerPelosi vs. GenerateACat
+    0.1587: CNN vs. GenerateACat
+    0.1540: SpeakerPelosi vs. storygraphbot
+    0.1403: FoxNews vs. GenerateACat
+    0.1386: POTUS vs. storygraphbot
+    0.1303: GOPLeader vs. storygraphbot
+    0.0724: GenerateACat vs. storygraphbot
+    0.0480: CNN vs. storygraphbot
+    0.0386: FoxNews vs. storygraphbot
+    ------
+    0.3379: Average cosine sim
+    
+  write_output(): wrote: accounts_sim.jsonl
+  ```
+</details>
+
+<details>
+  <summary>Full output which includes ranking of features that contributed the most toward the similarity of account pairs:</summary>
+  
+  ```python
+    
+  Features importance,
+    FoxNews vs. CNN, (score, feature):
+      1. 0.3356 T
+      2. 0.3317 Ut
+      3. 0.2496 ⚀
+      4. 0.0139 □
+      5. 0.0006 TT
+      6. 0.0005 mUt
+      7. 0.0004 EUt
+      8. 0.0000 Emφt
+      9. 0.0000 EmUt
+     10. 0.0000 Emt
+
+    POTUS vs. SpeakerPelosi, (score, feature):
+      1. 0.3500 t
+      2. 0.2129 T
+      3. 0.1910 ⚁
+      4. 0.0795 s
+      5. 0.0188 ⚀
+      6. 0.0149 Ut
+      7. 0.0104 Et
+      8. 0.0016 Tπ
+      9. 0.0012 mt
+     10. 0.0011 Eφt
+
+    SpeakerPelosi vs. GOPLeader, (score, feature):
+      1. 0.1869 s
+      2. 0.1754 ⚁
+      3. 0.1070 t
+      4. 0.0698 T
+      5. 0.0257 Ht
+      6. 0.0190 ⚀
+      7. 0.0147 r
+      8. 0.0121 Ut
+      9. 0.0104 Hmt
+     10. 0.0080 Et
+
+    CNN vs. POTUS, (score, feature):
+      1. 0.3535 T
+      2. 0.1377 ⚀
+      3. 0.0452 Ut
+      4. 0.0251 s
+      5. 0.0060 Eφt
+      6. 0.0045 ⚁
+      7. 0.0027 EUφt
+      8. 0.0003 Et
+      9. 0.0001 EUt
+     10. 0.0001 Emφt
+
+    POTUS vs. GOPLeader, (score, feature):
+      1. 0.1440 ⚁
+      2. 0.1110 T
+      3. 0.1108 t
+      4. 0.1010 s
+      5. 0.0655 ⚀
+      6. 0.0129 Et
+      7. 0.0081 Eφt
+      8. 0.0070 Ut
+      9. 0.0056 r
+     10. 0.0006 Emφt
+
+    FoxNews vs. POTUS, (score, feature):
+      1. 0.3212 T
+      2. 0.1176 ⚀
+      3. 0.0633 Ut
+      4. 0.0002 EUt
+      5. 0.0000 Emφt
+      6. 0.0000 Emt
+      7. 0.0000 WWW+
+      8. 0.0000 www+
+      9. 0.0000 E
+     10. 0.0000 EEE+Hmmt
+
+    CNN vs. SpeakerPelosi, (score, feature):
+      1. 0.2224 T
+      2. 0.0782 Ut
+      3. 0.0464 s
+      4. 0.0399 ⚀
+      5. 0.0055 ⚁
+      6. 0.0016 □
+      7. 0.0009 Eφt
+      8. 0.0008 mUt
+      9. 0.0004 mmUt
+     10. 0.0002 Emt
+
+    CNN vs. GOPLeader, (score, feature):
+      1. 0.1390 ⚀
+      2. 0.1160 T
+      3. 0.0589 s
+      4. 0.0365 Ut
+      5. 0.0161 □
+      6. 0.0065 Eφt
+      7. 0.0045 EUφt
+      8. 0.0042 ⚁
+      9. 0.0012 mUt
+     10. 0.0011 Emφt
+
+    FoxNews vs. SpeakerPelosi, (score, feature):
+      1. 0.2021 T
+      2. 0.1096 Ut
+      3. 0.0341 ⚀
+      4. 0.0018 □
+      5. 0.0003 λ
+      6. 0.0003 mUt
+      7. 0.0001 EUt
+      8. 0.0001 Emt
+      9. 0.0000 Emφt
+     10. 0.0000 w
+
+    FoxNews vs. GOPLeader, (score, feature):
+      1. 0.1187 ⚀
+      2. 0.1054 T
+      3. 0.0512 Ut
+      4. 0.0178 □
+      5. 0.0004 mUt
+      6. 0.0004 Emφt
+      7. 0.0004 EUt
+      8. 0.0002 λ
+      9. 0.0001 EmUt
+     10. 0.0001 Emt
+
+    POTUS vs. GenerateACat, (score, feature):
+      1. 0.0862 ⚁
+      2. 0.0746 Et
+      3. 0.0653 T
+      4. 0.0329 ⚀
+      5. 0.0000 Emt
+      6. 0.0000 E
+      7. 0.0000 EEE+Hmmt
+      8. 0.0000 EEE+Ut
+      9. 0.0000 EEE+mmmt
+     10. 0.0000 EEE+mmt
+
+    GOPLeader vs. GenerateACat, (score, feature):
+      1. 0.0791 ⚁
+      2. 0.0568 Et
+      3. 0.0332 ⚀
+      4. 0.0216 □
+      5. 0.0214 T
+      6. 0.0001 Emt
+      7. 0.0000 E
+      8. 0.0000 EEE+Hmmt
+      9. 0.0000 EEE+Ut
+     10. 0.0000 EEE+mmmt
+
+    SpeakerPelosi vs. GenerateACat, (score, feature):
+      1. 0.1050 ⚁
+      2. 0.0461 Et
+      3. 0.0411 T
+      4. 0.0095 ⚀
+      5. 0.0022 □
+      6. 0.0001 Emt
+      7. 0.0000 E
+      8. 0.0000 EEE+Hmmt
+      9. 0.0000 EEE+Ut
+     10. 0.0000 EEE+mmmt
+
+    CNN vs. GenerateACat, (score, feature):
+      1. 0.0698 ⚀
+      2. 0.0682 T
+      3. 0.0169 □
+      4. 0.0025 ⚁
+      5. 0.0012 Et
+      6. 0.0000 Emt
+      7. 0.0000 E
+      8. 0.0000 EEE+Hmmt
+      9. 0.0000 EEE+Ut
+     10. 0.0000 EEE+mmmt
+
+    SpeakerPelosi vs. storygraphbot, (score, feature):
+      1. 0.1379 ⚁
+      2. 0.0050 ⚀
+      3. 0.0049 T
+      4. 0.0023 π
+      5. 0.0020 Tπ
+      6. 0.0007 ⚂
+      7. 0.0006 Tπππ+
+      8. 0.0003 Tππ
+      9. 0.0003 Tπππ
+     10. 0.0000 E
+
+    FoxNews vs. GenerateACat, (score, feature):
+      1. 0.0620 T
+      2. 0.0596 ⚀
+      3. 0.0186 □
+      4. 0.0000 Emt
+      5. 0.0000 E
+      6. 0.0000 EEE+Hmmt
+      7. 0.0000 EEE+Ut
+      8. 0.0000 EEE+mmmt
+      9. 0.0000 EEE+mmt
+     10. 0.0000 EEE+mt
+
+    POTUS vs. storygraphbot, (score, feature):
+      1. 0.1132 ⚁
+      2. 0.0172 ⚀
+      3. 0.0078 T
+      4. 0.0003 Tπ
+      5. 0.0001 Tπππ
+      6. 0.0000 Tππ
+      7. 0.0000 Tπππ+
+      8. 0.0000 E
+      9. 0.0000 EEE+Hmmt
+     10. 0.0000 EEE+Ut
+
+    GOPLeader vs. storygraphbot, (score, feature):
+      1. 0.1040 ⚁
+      2. 0.0173 ⚀
+      3. 0.0064 π
+      4. 0.0026 T
+      5. 0.0001 ππ
+      6. 0.0000 ⚂
+      7. 0.0000 E
+      8. 0.0000 EEE+Hmmt
+      9. 0.0000 EEE+Ut
+     10. 0.0000 EEE+mmmt
+
+    GenerateACat vs. storygraphbot, (score, feature):
+      1. 0.0622 ⚁
+      2. 0.0087 ⚀
+      3. 0.0015 T
+      4. 0.0000 E
+      5. 0.0000 EEE+Hmmt
+      6. 0.0000 EEE+Ut
+      7. 0.0000 EEE+mmmt
+      8. 0.0000 EEE+mmt
+      9. 0.0000 EEE+mt
+     10. 0.0000 EEE+t
+
+    CNN vs. storygraphbot, (score, feature):
+      1. 0.0364 ⚀
+      2. 0.0082 T
+      3. 0.0033 ⚁
+      4. 0.0001 TT
+      5. 0.0000 E
+      6. 0.0000 EEE+Hmmt
+      7. 0.0000 EEE+Ut
+      8. 0.0000 EEE+mmmt
+      9. 0.0000 EEE+mmt
+     10. 0.0000 EEE+mt
+
+    FoxNews vs. storygraphbot, (score, feature):
+      1. 0.0311 ⚀
+      2. 0.0074 T
+      3. 0.0000 TT
+      4. 0.0000 E
+      5. 0.0000 EEE+Hmmt
+      6. 0.0000 EEE+Ut
+      7. 0.0000 EEE+mmmt
+      8. 0.0000 EEE+mmt
+      9. 0.0000 EEE+mt
+     10. 0.0000 EEE+t
+
+  Cosine sim,
+    0.9325: FoxNews vs. CNN
+    0.8841: POTUS vs. SpeakerPelosi
+    0.6516: SpeakerPelosi vs. GOPLeader
+    0.5752: CNN vs. POTUS
+    0.5680: POTUS vs. GOPLeader
+    0.5023: FoxNews vs. POTUS
+    0.3969: CNN vs. SpeakerPelosi
+    0.3862: CNN vs. GOPLeader
+    0.3483: FoxNews vs. SpeakerPelosi
+    0.2945: FoxNews vs. GOPLeader
+    0.2590: POTUS vs. GenerateACat
+    0.2123: GOPLeader vs. GenerateACat
+    0.2041: SpeakerPelosi vs. GenerateACat
+    0.1587: CNN vs. GenerateACat
+    0.1540: SpeakerPelosi vs. storygraphbot
+    0.1403: FoxNews vs. GenerateACat
+    0.1386: POTUS vs. storygraphbot
+    0.1303: GOPLeader vs. storygraphbot
+    0.0724: GenerateACat vs. storygraphbot
+    0.0480: CNN vs. storygraphbot
+    0.0386: FoxNews vs. storygraphbot
+    ------
+    0.3379: Average cosine sim
+
+  write_output(): wrote: accounts_sim.jsonl
+  ```
+</details>
+
+**Example 4, generate list of most frequent BLOC words**:
 
 ### Python script usage:
 
