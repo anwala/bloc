@@ -7,14 +7,16 @@ import sys
 
 from datetime import datetime
 from bloc.generator import gen_bloc_for_users
+from bloc.subcommands import run_subcommands
 
+from bloc.util import dumpJsonToFile
 from bloc.util import genericErrorInfo
 from bloc.util import setLogDefaults
 from bloc.util import setLoggerDets
 
 logger = logging.getLogger('bloc.bloc')
 
-def get_generic_args():
+def get_generic_args(subcommand):
 
     parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=30), description='Behavioral Language for Online Classification (BLOC) command-line tool')
     parser.add_argument('screen_names_or_ids', nargs='+', help='Twitter screen_name(s) or user_id(s) to generate BLOC. If user_ids set --no-screen-name.')
@@ -32,7 +34,19 @@ def get_generic_args():
 
     parser.add_argument('--segmentation-type', default='week_number', choices=['week_number', 'day_of_year_bin', 'yyyy-mm-dd'], help='How to segment BLOC string. Segments of strings are separated by |. If day_of_year_bin selected, use --days-segment-count to change the number of days marking segment boundaries.')
     parser.add_argument('--days-segment-count', type=int, default=1, help='For --segmentation-type=day_of_year_bin. This value determines the number of days marking segment boundaries.')
-    
+
+    if( subcommand != '' ):
+        parser.add_argument('--account-class', default='', help='Class labels (e.g., bot or cyborgs or humans) of accounts')
+        parser.add_argument('--account-src', default='', help='Origin of accounts')
+        parser.add_argument('--fold-start-count', type=int, default=4, help='For word models, value marks maximum threshold words must reach before truncation.')
+        parser.add_argument('--keep-tf-matrix', action='store_true', help='Keep or do not keep tf_matrix. Default is False.')
+        parser.add_argument('--ngram', type=int, default=1, help='n-gram for tokenization BLOC string.')
+        parser.add_argument('--no-sort-action-words', action='store_true', help='For word models, do not sort action words. Default is False (action words sorted).')
+        parser.add_argument('--set-top-ngrams', action='store_true', help='Generate top BLOC n-grams per user or across all users. If True, --keep-tf-matrix must be True. Default is False.')
+        parser.add_argument('--tf-matrix-norm', default='', choices=['', 'l1', 'max'], help='Norm to use for normalizing TF matrix (see sklearn.preprocessing.normalize(). Blank means tf_matrix_normalized is not needed.')
+        parser.add_argument('--token-pattern', default='word', help='Regular expression or {bigram, word} that defines word boundaries. Regex for bigram: "([^ |()*])". Regex for word: "[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]". ')
+        parser.add_argument('--top-ngrams-add-all-docs', action='store_true', help='Generate top BLOC n-grams across all users. If True, --keep-tf-matrix must be True. Default is False.')
+
     #alphabetical
     parser.add_argument('--ansi-code', default='91m', help='Color code for BLOC action string. Blank means no color.')
     parser.add_argument('--bloc-alphabets', default=['action', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment'], nargs='+', choices=['action', 'change', 'content_syntactic', 'content_syntactic_with_pauses', 'content_semantic_entity', 'content_semantic_sentiment',  'action_content_syntactic'], help='BLOC alphabets to draw letters from.')    
@@ -58,7 +72,7 @@ def get_generic_args():
     parser.add_argument('--timeline-startdate', default='', help='Extract tweets published from --timeline-startdate in UTC (YYYY-MM-DD HH:MM:SS).')
     parser.add_argument('--timeline-scroll-by-hours', type=int, help='Starting at --timeline-startdate, scroll up (positive hours) or down (negative hours) timeline by this value to retrieve timeline tweets.')    
     parser.add_argument('--time-function', default='f2', choices=['f1', 'f2'], help='The pause function to use to generate pause symbols. f1 is non-granular, f2 is.')
-    
+
     return parser
 
 def proc_req(args):
@@ -76,7 +90,10 @@ def proc_req(args):
         #in generator.py.add_bloc_sequences(), if days_segment_count > 0, day_of_year_bin segmentation type is activated irrespective of the value of segmentation_type,
         #so set days_segment_count to -1 when segmentation_type is not day_of_year_bin to avoid switching it on.
         params['days_segment_count'] = -1
-  
+
+    
+    params['sort_action_words'] = False if params.get('no_sort_action_words', False) is True else True
+    
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
     return gen_bloc_for_users( **params )
@@ -84,29 +101,43 @@ def proc_req(args):
 def write_output(output, payload):
 
     try:
-        with open(output, 'w') as outfile:
-            for u in payload:
-                outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
+        if( isinstance(payload, list) ):
+            with open(output, 'w') as outfile:
+                for u in payload:
+                    outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
 
-        print('\nwrite_output(): wrote:', output)
+            print('\nwrite_output(): wrote:', output)
+        else:
+            dumpJsonToFile(output, payload, indentFlag=False)
     except:
         genericErrorInfo()
 
 def main():
 
+    subcommand = ''
     if( len(sys.argv) > 1 ):
+        
         if( sys.argv[1] == '-v' or sys.argv[1] == '--version' ):
             
             from bloc.version import __appversion__
             print(__appversion__)
             return
-    
-    parser = get_generic_args()
+
+        bloc_subcommand = ['top_ngrams', 'sim']
+        if( sys.argv[1] in bloc_subcommand ):
+            subcommand = sys.argv[1]
+            del sys.argv[1]
+
+
+    parser = get_generic_args(subcommand)
     args = parser.parse_args()
-    payload = proc_req(args)
+    
+    bloc_payload = proc_req(args)
+    if( subcommand != '' ):
+        bloc_payload = run_subcommands(args, subcommand, bloc_payload)
 
     if( args.output is not None ):
-        write_output( args.output, payload )
+        write_output( args.output, bloc_payload )
 
 if __name__ == '__main__':
     main()
