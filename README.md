@@ -43,7 +43,7 @@ The image below outlines the BLOC strings for a sequence of three tweets (a repl
 
 ## BLOC Alphabets (Code vs. Paper)
 
-More alphabets are implemented here compared to the BLOC paper ([*A General Language for Modeling Social Media Account Behavior*](https://github.com/anwala/general-language-behavior)). Specifically, this BLOC tool implements these [alphabets](/blob/main/bloc/symbols.json):
+More alphabets are implemented here compared to the BLOC paper ([*A General Language for Modeling Social Media Account Behavior*](http://arxiv.org/abs/2211.00639)). Specifically, this BLOC tool implements these [alphabets](/blob/main/bloc/symbols.json):
 * `action`
 * `content_syntactic`
 * `content_semantic_sentiment`
