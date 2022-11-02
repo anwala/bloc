@@ -75,7 +75,7 @@ def get_generic_args(subcommand):
 
     return parser
 
-def proc_req(args):
+def proc_req(args, subcommand):
 
     params = vars(args)
     
@@ -93,6 +93,7 @@ def proc_req(args):
 
     
     params['sort_action_words'] = False if params.get('no_sort_action_words', False) is True else True
+    params['keep_bloc_segments'] = True if subcommand == 'cluster' else params.get('keep_bloc_segments', False)
     
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
@@ -123,7 +124,7 @@ def main():
             print(__appversion__)
             return
 
-        bloc_subcommand = ['top_ngrams', 'sim']
+        bloc_subcommand = ['top_ngrams', 'sim', 'cluster']
         if( sys.argv[1] in bloc_subcommand ):
             subcommand = sys.argv[1]
             del sys.argv[1]
@@ -132,7 +133,7 @@ def main():
     parser = get_generic_args(subcommand)
     args = parser.parse_args()
     
-    bloc_payload = proc_req(args)
+    bloc_payload = proc_req(args, subcommand)
     if( subcommand != '' ):
         bloc_payload = run_subcommands(args, subcommand, bloc_payload)
 

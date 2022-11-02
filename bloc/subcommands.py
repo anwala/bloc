@@ -6,6 +6,7 @@ from bloc.generator import add_bloc_sequences
 from bloc.generator import get_word_type
 
 from bloc.util import conv_tf_matrix_to_json_compliant
+#from bloc.util import dumpJsonToFile
 from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
 from bloc.util import get_default_symbols
@@ -14,6 +15,7 @@ logger = logging.getLogger('bloc.bloc')
 
 def run_subcommands(args, subcommand, payload):
     
+    report = []
     bloc_variant = None if args.ngram > 1 else {'type': 'folded_words', 'fold_start_count': args.fold_start_count, 'count_applies_to_all_char': False}
     if( args.token_pattern == 'bigram' ):
         token_pattern = '([^ |()*])'
@@ -45,6 +47,10 @@ def run_subcommands(args, subcommand, payload):
 
     #generate collection of BLOC documents
     bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src=args.account_src, src_class=args.account_class)
+
+    if( subcommand == 'cluster' ):
+        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets)
+
     
     tf_matrices = get_bloc_variant_tf_matrix(
         bloc_doc_lst, 
@@ -130,6 +136,77 @@ def pairwise_usr_cmp(tf_mat):
     logger.info('\t{:.4f}: Average cosine sim'.format(avg_sim))
 
     return report
+
+def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets):
+
+    logger.info('\nall_usr_self_cmp():')
+    for u_bloc in bloc_collection:
+        
+        self_sim_report = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets)
+        
+        print(u_bloc['screen_name'])
+        for alph, sim_vals in self_sim_report.items():
+            avg_sim = -1 if sim_vals == [] else sum(sim_vals)/len(sim_vals)
+            print('\t{:.4f}, {}'.format(avg_sim, alph) )
+        
+        print()
+
+def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets):
+
+    def self_doc_lst(bloc_segments, alphabet):
+        
+        if( 'segments' not in bloc_segments ):
+            return []
+
+        doc_lst = []
+        for seg_id, seg_dets in bloc_segments['segments'].items():
+            
+            if( alphabet not in seg_dets ):
+                continue
+
+            if( seg_dets[alphabet].strip() == '' ):
+                continue
+            
+            doc_lst.append({'text': seg_dets[alphabet]})
+
+        return doc_lst
+    
+    def calc_self_sim(self_bloc_doc_lst, bloc_model):
+
+        if( len(self_bloc_doc_lst) == 0 ):
+            return []
+
+        self_matrices = get_bloc_variant_tf_matrix(
+            self_bloc_doc_lst, 
+            min_df=2, 
+            ngram=bloc_model['ngram'], 
+            tf_matrix_norm=bloc_model['tf_matrix_norm'], 
+            keep_tf_matrix=bloc_model['keep_tf_matrix'], 
+            token_pattern=bloc_model['token_pattern'], 
+            bloc_variant=bloc_model['bloc_variant'], 
+            set_top_ngrams=bloc_model['set_top_ngrams'], 
+            top_ngrams_add_all_docs=bloc_model['top_ngrams_add_all_docs']
+        )
+
+        if( 'tf_idf_matrix' not in self_matrices ):
+            return []
+
+        all_self_sim = []
+        for i in range( 1, len(self_matrices['tf_idf_matrix']) ):
+            pre_vect = self_matrices['tf_idf_matrix'][i-1]['tf_vector']
+            cur_vect = self_matrices['tf_idf_matrix'][i]['tf_vector']
+            sim = cosine_similarity( pre_vect, cur_vect )[0][0]
+            all_self_sim.append(sim)
+
+        return all_self_sim
+    
+    self_sim_report = {}
+    for alph in bloc_alphabets:
+        
+        self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
+        self_sim_report[alph] = calc_self_sim(self_bloc_doc_lst, bloc_model)
+
+    return self_sim_report
 
 def print_top_ngrams(tf_mat, k=10):
 
