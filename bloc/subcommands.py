@@ -7,6 +7,7 @@ from bloc.generator import get_word_type
 
 from bloc.util import conv_tf_matrix_to_json_compliant
 #from bloc.util import dumpJsonToFile
+from bloc.util import five_number_summary
 from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
 from bloc.util import get_default_symbols
@@ -146,8 +147,12 @@ def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets):
         
         print(u_bloc['screen_name'])
         for alph, sim_vals in self_sim_report.items():
-            avg_sim = -1 if sim_vals == [] else sum(sim_vals)/len(sim_vals)
-            print('\t{:.4f}, {}'.format(avg_sim, alph) )
+            
+            summary_stats = five_number_summary(sim_vals)
+            if( len(summary_stats) == 0 ):
+                continue
+
+            print('\t({:.4f}, {:.4f}, {:.4f}) {}'.format(summary_stats['mean'], summary_stats['median'], summary_stats['pstdev'], alph) )
         
         print()
 

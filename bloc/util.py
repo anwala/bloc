@@ -8,6 +8,7 @@ import sys
 import time
 import numpy as np
 import scipy.sparse as sp
+import statistics
 
 from datetime import datetime
 
@@ -990,3 +991,28 @@ def twitter_v2_user_lookup_ids(osome_twt_obj, screen_names):
     return all_users
 
 #twitter v2 - end
+
+#misc - start
+def five_number_summary(num_lst):
+
+    if( len(num_lst) == 0 ):
+        return {}
+
+    num_lst.sort()
+    summary_stats = {}
+    quarts = np.quantile(num_lst, [0.25,0.5,0.75])
+
+    summary_stats['minimum'] = num_lst[0]
+    summary_stats['q1'] = quarts[0]
+    summary_stats['median'] = quarts[1]
+    summary_stats['q3'] = quarts[2]
+    summary_stats['maximum'] = num_lst[-1]
+
+    summary_stats['mean'] = statistics.mean(num_lst)
+    summary_stats['range'] = summary_stats['maximum'] - summary_stats['minimum']
+    summary_stats['count'] = len(num_lst)
+    summary_stats['pstdev'] = statistics.pstdev( num_lst )
+
+
+    return summary_stats
+#misc - end
