@@ -610,6 +610,8 @@ def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pa
     #bigram: r'[^ |()*]', word: '[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]'
     #reconcile implementation with bloc_analyzer.py::analyze_bloc_for_users()
     bloc_variant = kwargs.get('bloc_variant', None)
+    if( doc_lst == [] ):
+       return {}
 
     if( bloc_variant is None ):
 
@@ -641,6 +643,10 @@ def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pa
         
         #since tf_matrix only has tf_matrix, transfer properties for each document to tf_matrix so they'd eventually be transfered to bloc_variant_tf_matrix - start
         for m in ['tf_matrix_normalized', 'tf_idf_matrix']:
+
+            if( m not in tf_matrix ):
+                continue
+
             for i in range( len(tf_matrix['tf_matrix']) ):
                 doc_dct = [ (v[0], v[1]) for v in tf_matrix['tf_matrix'][i].items() if v[0] != 'tf_vector' ]
                 tf_matrix[m].append( dict(doc_dct) )
@@ -648,7 +654,7 @@ def get_bloc_variant_tf_matrix(doc_lst, ngram, tf_mat=None, vocab=None, token_pa
         tf_matrix = update_bloc_model(tf_matrix, bloc_variant_tf_matrix, tf_matrix_norm=kwargs.pop('tf_matrix_norm', ''), tf_idf_norm=kwargs.pop('tf_idf_norm', 'l2'), **kwargs )
         if( kwargs.get('keep_tf_matrix', False) is False ):
             tf_matrix['tf_matrix'] = []
-        
+    
     return tf_matrix
 
 def conv_tf_matrix_to_json_compliant(tf_mat):
