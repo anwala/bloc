@@ -6,7 +6,7 @@ from bloc.generator import add_bloc_sequences
 from bloc.generator import get_word_type
 
 from bloc.util import conv_tf_matrix_to_json_compliant
-#from bloc.util import dumpJsonToFile
+from bloc.util import dumpJsonToFile
 from bloc.util import five_number_summary
 from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
@@ -14,8 +14,11 @@ from bloc.util import get_default_symbols
 
 logger = logging.getLogger('bloc.bloc')
 
-def run_subcommands(args, subcommand, payload):
-    
+def run_subcommands(args, subcommand, bloc_collection):
+
+    if( bloc_collection is None ):
+        return {}
+
     report = []
     bloc_variant = None if args.ngram > 1 else {'type': 'folded_words', 'fold_start_count': args.fold_start_count, 'count_applies_to_all_char': False}
     if( args.token_pattern == 'bigram' ):
@@ -44,13 +47,11 @@ def run_subcommands(args, subcommand, payload):
     }
 
     all_bloc_symbols = get_default_symbols()
-    bloc_collection = [ubloc for ubloc in payload]
-
     #generate collection of BLOC documents
     bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src=args.account_src, src_class=args.account_class)
 
-    if( subcommand == 'cluster' ):
-        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets)
+    if( subcommand == 'change' ):
+        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev)
 
     
     tf_matrices = get_bloc_variant_tf_matrix(
@@ -138,25 +139,20 @@ def pairwise_usr_cmp(tf_mat):
 
     return report
 
-def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets):
-
+def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None):
+    
     logger.info('\nall_usr_self_cmp():')
-    for u_bloc in bloc_collection:
-        
-        self_sim_report = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets)
-        
-        print(u_bloc['screen_name'])
-        for alph, sim_vals in self_sim_report.items():
-            
-            summary_stats = five_number_summary(sim_vals)
-            if( len(summary_stats) == 0 ):
-                continue
 
-            print('\t({:.4f}, {:.4f}, {:.4f}) {}'.format(summary_stats['mean'], summary_stats['median'], summary_stats['pstdev'], alph) )
-        
-        print()
+    all_self_sim_reports = []
+    for u_bloc in bloc_collection:   
 
-def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets):
+        u_bloc['change_report'] = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, mean_sim=change_mean, stddev_sim=change_stddev)
+        all_self_sim_reports.append(u_bloc)
+
+    return all_self_sim_reports
+
+
+def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, mean_sim, stddev_sim):
 
     def self_doc_lst(bloc_segments, alphabet):
         
@@ -172,7 +168,7 @@ def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets):
             if( seg_dets[alphabet].strip() == '' ):
                 continue
             
-            doc_lst.append({'text': seg_dets[alphabet]})
+            doc_lst.append({ 'text': seg_dets[alphabet], 'seg_id': seg_id })
 
         return doc_lst
     
@@ -181,35 +177,102 @@ def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets):
         if( len(self_bloc_doc_lst) == 0 ):
             return []
 
-        self_matrices = get_bloc_variant_tf_matrix(
-            self_bloc_doc_lst, 
-            min_df=2, 
-            ngram=bloc_model['ngram'], 
-            tf_matrix_norm=bloc_model['tf_matrix_norm'], 
-            keep_tf_matrix=bloc_model['keep_tf_matrix'], 
-            token_pattern=bloc_model['token_pattern'], 
-            bloc_variant=bloc_model['bloc_variant'], 
-            set_top_ngrams=bloc_model['set_top_ngrams'], 
-            top_ngrams_add_all_docs=bloc_model['top_ngrams_add_all_docs']
-        )
-
-        if( 'tf_idf_matrix' not in self_matrices ):
-            return []
-
         all_self_sim = []
-        for i in range( 1, len(self_matrices['tf_idf_matrix']) ):
-            pre_vect = self_matrices['tf_idf_matrix'][i-1]['tf_vector']
-            cur_vect = self_matrices['tf_idf_matrix'][i]['tf_vector']
+        for i in range( 1, len(self_bloc_doc_lst) ):
+            
+            fst_doc = self_bloc_doc_lst[i-1]
+            sec_doc = self_bloc_doc_lst[i]
+
+            self_mat = get_bloc_variant_tf_matrix(
+                [fst_doc, sec_doc], 
+                min_df=2, 
+                ngram=bloc_model['ngram'], 
+                tf_matrix_norm=bloc_model['tf_matrix_norm'], 
+                keep_tf_matrix=bloc_model['keep_tf_matrix'], 
+                token_pattern=bloc_model['token_pattern'], 
+                bloc_variant=bloc_model['bloc_variant'], 
+                set_top_ngrams=bloc_model['set_top_ngrams'], 
+                top_ngrams_add_all_docs=bloc_model['top_ngrams_add_all_docs']
+            )
+
+            if( 'tf_idf_matrix' not in self_mat ):
+                continue
+            
+            #print('vocab:', self_mat['vocab'])
+            pre_vect = self_mat['tf_idf_matrix'][0]['tf_vector']
+            cur_vect = self_mat['tf_idf_matrix'][1]['tf_vector']
             sim = cosine_similarity( pre_vect, cur_vect )[0][0]
-            all_self_sim.append(sim)
+
+            all_self_sim.append({'fst_doc_indx': i-1, 'sec_doc_indx': i, 'sim': sim})
+
+            '''
+            print('d1:', fst_doc)
+            print('d2:', sec_doc)
+            print('v1:', pre_vect.toarray()[0])
+            print('v2:', cur_vect.toarray()[0])
+            print('sim:', sim)
+            print('all_self_sim')
+            print(all_self_sim)
+            print()
+            '''
 
         return all_self_sim
     
-    self_sim_report = {}
+    def get_segment_dates(seg_id, segments_details):
+
+        if( seg_id not in segments_details ):
+            return []
+
+        local_dates = list(segments_details[seg_id]['local_dates'].keys())
+        local_dates.sort()
+        return local_dates
+
+    print(usr_bloc['screen_name'])
+
+    self_sim_report = {'self_sim': {}}
     for alph in bloc_alphabets:
         
         self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
-        self_sim_report[alph] = calc_self_sim(self_bloc_doc_lst, bloc_model)
+        self_sim_report['self_sim'][alph] = calc_self_sim(self_bloc_doc_lst, bloc_model)
+        
+        summary_stats = {}
+        if( mean_sim is None or stddev_sim is None ):
+            summary_stats = five_number_summary([ v['sim'] for v in self_sim_report['self_sim'][alph] ])
+        else:
+            summary_stats['mean'] = mean_sim  
+            summary_stats['median'] = mean_sim
+            summary_stats['pstdev'] = stddev_sim
+
+        if( len(summary_stats) == 0 ):
+            continue
+
+        print('\t({:.4f}, {:.4f}, {:.4f}) {}'.format(summary_stats['mean'], summary_stats['median'], summary_stats['pstdev'], alph) )
+        drastic_change_count = 0
+        for sm in self_sim_report['self_sim'][alph]:
+            
+            if( summary_stats['pstdev'] == 0 ):
+                continue
+
+            zscore_sim = (abs(sm['sim'] - summary_stats['mean']))/summary_stats['pstdev']
+            if( zscore_sim <= 1.5 ):
+                continue
+
+            fst_indx = sm['fst_doc_indx']
+            sec_indx = sm['sec_doc_indx']
+
+            st_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[fst_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
+            en_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[sec_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
+
+            #here means sim change is more than 1 - std. dev from mean, so it could indicate drastic change
+            print( '\tdrastic change sim/z-score: {:.2f} {:.2f}'.format(sm['sim'], zscore_sim) )
+            print( '\t', self_bloc_doc_lst[fst_indx]['text'], 'vs', self_bloc_doc_lst[sec_indx]['text'] )
+            print( '\t', st_segment_date[0], 'vs', en_segment_date[-1], '\n' )
+            drastic_change_count += 1
+
+        print( '\tdrastic_change_count: {} (of {} = {:.2f})'.format(drastic_change_count, len(self_sim_report['self_sim'][alph]), drastic_change_count/len(self_sim_report['self_sim'][alph])) )
+        print()
+        print()
+        
 
     return self_sim_report
 

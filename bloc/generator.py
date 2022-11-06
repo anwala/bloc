@@ -1071,6 +1071,11 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
 
     def add_bloc_segments(twt, segment_id, bloc_segments):
 
+        loc_date = twt['bloc']['local_time'].split(' ')[0]
+        bloc_segments['segments_details'].setdefault( segment_id, {'local_dates':{}} )
+        bloc_segments['segments_details'][segment_id]['local_dates'].setdefault(loc_date, 0)
+        bloc_segments['segments_details'][segment_id]['local_dates'][loc_date] += 1
+
         twt['bloc']['bloc_sequences_short'] = {}
         for dim, dim_dct in twt['bloc']['bloc_sequences'].items():
             twt['bloc']['bloc_sequences_short'][dim] = dim_dct['seq']
@@ -1160,7 +1165,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     bloc_alphabets = kwargs.get('bloc_alphabets', ['action', 'content_syntactic', 'content_semantic_entity'])#additional valid bloc_alphabets: change, content_syntactic_with_pauses, action_content_syntactic
 
     segmentation_type = segmentation_type if segmentation_type in ['week_number', 'day_of_year_bin', 'yyyy-mm-dd'] else 'week_number'
-    bloc_segments = {'segments': {}, 'last_segment': '', 'segment_count': 0, 'segmentation_type': segmentation_type}
+    bloc_segments = {'segments': {}, 'segments_details': {}, 'last_segment': '', 'segment_count': 0, 'segmentation_type': segmentation_type}
     use_src_ref_time = True if kwargs['time_reference'] == 'reference_tweet' else False
 
     if( days_segment_count > 0 ):
@@ -1181,7 +1186,13 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     prev_twt = ''
     user_id = ''
     screen_name = ''
-    tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] )
+    tweets = sorted( tweets, key=lambda x: x['id'] )
+    
+    more_details = {
+        'total_tweets': twt_len,
+        'first_tweet_created_at_local_time': '' if twt_len == 0 else tweets[0]['bloc']['local_time'],
+        'last_tweet_created_at_local_time': '' if twt_len == 0 else tweets[-1]['bloc']['local_time']
+    }
     for i in range( twt_len ):
         
         twt = tweets[i]
@@ -1271,7 +1282,8 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         'created_at_utc': datetime.utcnow().isoformat().split('.')[0] + 'Z',
         'screen_name': screen_name,
         'user_id': user_id,
-        'bloc_symbols_version': all_bloc_symbols.get('version', '')
+        'bloc_symbols_version': all_bloc_symbols.get('version', ''),
+        'more_details': more_details
     }
     
     return result
@@ -1300,24 +1312,20 @@ def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code, segme
 
 def get_timeline_request_dets(report):
 
-    if( 'tweets' not in report or 'bloc' not in report ):
+    if( 'more_details' not in report ):
         return ''
 
-    if( len(report['tweets']) == 0 ):
-        return ''
-
-    tweets = report['tweets']
     details = ''
     try:
-        screen_name = report['screen_name'] if report['screen_name'] != '' else tweets[0]['user']['screen_name']
-        st_time = datetime.strptime(tweets[0]['bloc']['local_time'], '%Y-%m-%d %H:%M:%S')
-        en_time = datetime.strptime(tweets[-1]['bloc']['local_time'], '%Y-%m-%d %H:%M:%S')
-        week_diff = en_time.isocalendar()[1] - st_time.isocalendar()[1]
+        screen_name = report['screen_name']
+        st_time = datetime.strptime(report['more_details']['first_tweet_created_at_local_time'], '%Y-%m-%d %H:%M:%S')
+        en_time = datetime.strptime(report['more_details']['last_tweet_created_at_local_time'], '%Y-%m-%d %H:%M:%S')
 
         delta = en_time - st_time
-        delta = '(' + str(delta.days) + ' day(s), ' + str(delta.seconds//3600) + ':' + str( ((delta.seconds//60)%60) ) + '), '
+        week_diff = '{:.2f}'.format(delta.days/7)
+        delta = '(or ' + str(delta.days) + ' day(s), ' + str(delta.seconds//3600) + ':' + str( ((delta.seconds//60)%60) ) + '), '
         
-        details = '\n@' + screen_name + '\'s BLOC for ' + str(week_diff) + ' week(s), ' + delta + str(len(tweets)) + ' tweet(s) from ' + str(st_time) + ' to ' + str(en_time)
+        details = '\n@' + screen_name + '\'s BLOC for ' + str(week_diff) + ' week(s), ' + delta + str(report['more_details']['total_tweets']) + ' tweet(s) from ' + str(st_time) + ' to ' + str(en_time)
     except:
         genericErrorInfo()
     
