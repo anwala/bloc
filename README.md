@@ -73,7 +73,7 @@ For both paper and code, the dot (`.`) symbol is used when time granularity is n
 
 ### Basic command-line usage:
 
-**Example 1, generate BLOC strings using Twitter v1.1 credentials**:
+### Example 1, generate BLOC strings using Twitter v1.1 credentials:
 
 BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command generates BLOC for [`OSoMe_IU`](https://twitter.com/OSoMe_IU/) tweets for a maximum of 4 pages (`-m 4`; 20 tweets per page), and saves the BLOC strings with tweets (`--keep-tweets`) in osome_bloc.json (`-o osome_bloc.json`):
 ```bash
@@ -106,7 +106,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-sec
   ```
 </details>
 
-**Example 2, generate BLOC strings using Twitter v2 credentials**:
+### Example 2, generate BLOC strings using Twitter v2 credentials:
 
 For Twitter v2 (each page returns a maximum of 100 tweets):
 ```bash
@@ -145,7 +145,7 @@ $ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="foo" OSoMe_
 ```
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
-**Example 3, compare the similarity across multiple users**:
+### Example 3, compare the similarity across multiple users:
 
 The following command generates BLOC strings for multiple accounts, `@FoxNews`, `@CNN`, `@POTUS`, `@SpeakerPelosi`, `@GOPLeader`, `@GenerateACat`, and `@storygraphbot`. Next, it tokenizes the string using pauses (`[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]`). Next, it generates TF-IDF vectors for all accounts using the BLOC words as features. Next, it computes (average) cosine similarity across all pairs, and writes the output to `accounts_sim.jsonl`:
 ```bash
@@ -472,7 +472,7 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
   ```
 </details>
 
-**Example 4, generate list of most frequent BLOC words**:
+### Example 4, generate list of most frequent BLOC words:
 
 The following command generates the top BLOC words for the same accounts in Example 3. Similar to Example 3, after generating BLOC strings, it tokenizes using pauses, print the top BLOC words for individual accounts and across all accounts, and writes the output to `top_bloc_words.json`:
 
