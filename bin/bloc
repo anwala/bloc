@@ -40,6 +40,8 @@ def get_generic_args(subcommand):
         parser.add_argument('--account-src', default='', help='Origin of accounts')
         parser.add_argument('--change-mean', type=float, help='Empirical mean cosine similarity across BLOC segments.')
         parser.add_argument('--change-stddev', type=float, help='Empirical standard deviation across BLOC segments.')
+        parser.add_argument('--change-zscore-threshold', type=float, default=1.5, help='Number of standard deviations (z-score) a similarity value has to exceed to be considered significant.')
+
         parser.add_argument('--fold-start-count', type=int, default=4, help='For word models, value marks maximum threshold words must reach before truncation.')
         parser.add_argument('--keep-tf-matrix', action='store_true', help='Keep or do not keep tf_matrix. Default is False.')
         parser.add_argument('--ngram', type=int, default=1, help='n-gram for tokenization BLOC string.')

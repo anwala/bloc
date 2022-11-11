@@ -51,7 +51,7 @@ def run_subcommands(args, subcommand, bloc_collection):
     bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src=args.account_src, src_class=args.account_class)
 
     if( subcommand == 'change' ):
-        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev)
+        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
 
     
     tf_matrices = get_bloc_variant_tf_matrix(
@@ -139,20 +139,23 @@ def pairwise_usr_cmp(tf_mat):
 
     return report
 
-def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None):
+def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None, change_zscore_threshold=1.5):
     
     logger.info('\nall_usr_self_cmp():')
+    logger.info( '\tzscore_sim: Would {}compute change_mean since {} was supplied'.format('' if change_mean is None else 'NOT ', change_mean) )
+    logger.info( '\tzscore_sim: Would {}compute change_stddev since {} was supplied'.format('' if change_stddev is None else 'NOT ', change_stddev) )
+    logger.info( f'\tzscore_sim: change_zscore_threshold: {change_zscore_threshold}' )
 
     all_self_sim_reports = []
     for u_bloc in bloc_collection:   
 
-        u_bloc['change_report'] = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, mean_sim=change_mean, stddev_sim=change_stddev)
+        u_bloc['change_report'] = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, change_mean=change_mean, change_stddev=change_stddev, change_zscore_threshold=change_zscore_threshold)
         all_self_sim_reports.append(u_bloc)
 
     return all_self_sim_reports
 
 
-def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, mean_sim, stddev_sim):
+def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, change_stddev, change_zscore_threshold):
 
     def self_doc_lst(bloc_segments, alphabet):
         
@@ -227,34 +230,30 @@ def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, mean_sim, stddev_sim):
         local_dates.sort()
         return local_dates
 
-    print(usr_bloc['screen_name'])
+    logger.info(usr_bloc['screen_name'])
 
     self_sim_report = {'self_sim': {}}
     for alph in bloc_alphabets:
         
         self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
         self_sim_report['self_sim'][alph] = calc_self_sim(self_bloc_doc_lst, bloc_model)
-        
-        summary_stats = {}
-        if( mean_sim is None or stddev_sim is None ):
-            summary_stats = five_number_summary([ v['sim'] for v in self_sim_report['self_sim'][alph] ])
-        else:
-            summary_stats['mean'] = mean_sim  
-            summary_stats['median'] = mean_sim
-            summary_stats['pstdev'] = stddev_sim
-
+        summary_stats = five_number_summary([ v['sim'] for v in self_sim_report['self_sim'][alph] ])
         if( len(summary_stats) == 0 ):
             continue
 
-        print('\t({:.4f}, {:.4f}, {:.4f}) {}'.format(summary_stats['mean'], summary_stats['median'], summary_stats['pstdev'], alph) )
+        logger.info('\t{} cosine sim summary stats, mean: {:.4f}, median: {:.4f}, stddev: {:.4f}'.format(alph, summary_stats['mean'], summary_stats['median'], summary_stats['pstdev']) )
+        zscore_mean = summary_stats['mean'] if change_mean is None else change_mean
+        zscore_stddev = summary_stats['pstdev'] if change_stddev is None else change_stddev
+
+        
         drastic_change_count = 0
         for sm in self_sim_report['self_sim'][alph]:
             
-            if( summary_stats['pstdev'] == 0 ):
+            if( zscore_stddev == 0 ):
                 continue
 
-            zscore_sim = (abs(sm['sim'] - summary_stats['mean']))/summary_stats['pstdev']
-            if( zscore_sim <= 1.5 ):
+            zscore_sim = (abs(sm['sim'] - zscore_mean))/zscore_stddev
+            if( zscore_sim <= change_zscore_threshold ):
                 continue
 
             fst_indx = sm['fst_doc_indx']
@@ -264,14 +263,13 @@ def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, mean_sim, stddev_sim):
             en_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[sec_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
 
             #here means sim change is more than 1 - std. dev from mean, so it could indicate drastic change
-            print( '\tdrastic change sim/z-score: {:.2f} {:.2f}'.format(sm['sim'], zscore_sim) )
-            print( '\t', self_bloc_doc_lst[fst_indx]['text'], 'vs', self_bloc_doc_lst[sec_indx]['text'] )
-            print( '\t', st_segment_date[0], 'vs', en_segment_date[-1], '\n' )
+            logger.info( '\t{}. drastic change sim: {:.2f}, z-score: {:.2f}'.format(drastic_change_count+1, sm['sim'], zscore_sim) )
+            logger.info( '\t{} vs. {}'.format(self_bloc_doc_lst[fst_indx]['text'], self_bloc_doc_lst[sec_indx]['text']) )
+            logger.info( '\t{} vs. {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
             drastic_change_count += 1
 
-        print( '\tdrastic_change_count: {} (of {} = {:.2f})'.format(drastic_change_count, len(self_sim_report['self_sim'][alph]), drastic_change_count/len(self_sim_report['self_sim'][alph])) )
-        print()
-        print()
+        logger.info( '\tdrastic_change_count: {} (of {} = {:.2f})'.format(drastic_change_count, len(self_sim_report['self_sim'][alph]), drastic_change_count/len(self_sim_report['self_sim'][alph])) )
+        logger.info('')
         
 
     return self_sim_report

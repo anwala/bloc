@@ -582,6 +582,65 @@ $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets a
   ```
 </details>
 
+### Example 5, compute change across BLOC string segment:
+
+After generating BLOC `action` (`--bloc-alphabets action`) strings, the strings are grouped into weekly segments since the default `--segmentation-type=week_number`. This means that all BLOC strings generated within the same week are grouped into the same segment. On the `STDOUT`, segments are separated by vertical bars `|`. Next, BLOC vectors (using pauses to tokenize strings into words) for all segments are generated. Next, the cosine similarity across all adjacent segments is computed. Subsequently, the application computes the z-scores (we assume similarity of segments follows a Normal distribution) of all cosine similarity values and attempts to find pairs of segments that significantly differ.
+
+```bash
+$ bloc change -m 4 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" OSoMe_IU
+```
+
+<details>
+  <summary>Partial output of change report which identifies:</summary>
+  
+  ```
+    ...
+    all_usr_self_cmp():
+        zscore_sim: Would compute change_mean since None was supplied
+        zscore_sim: Would compute change_stddev since None was supplied
+        zscore_sim: change_zscore_threshold: 1.5
+    OSoMe_IU
+        action cosine sim summary stats, mean: 0.6412, median: 0.6721, stddev: 0.2016
+        1. drastic change sim: 0.22, z-score: 2.09
+        ⚂r⚂r vs. ⚂T⚁p
+        2021-11-24 vs. 2021-12-01
+
+        2. drastic change sim: 1.00, z-score: 1.78
+        ⚂T⚁T⚂T⚁T vs. ⚂T⚁T
+        2021-12-20 vs. 2021-12-28
+
+        3. drastic change sim: 0.31, z-score: 1.67
+        ⚂T⚁T vs. ⚃r□r⚂T
+        2021-12-27 vs. 2022-01-08
+
+        4. drastic change sim: 0.24, z-score: 1.97
+        ⚂r⚁r⚁T⚂r⚁T vs. ⚂T⚂p⚀p⚀p⚂T
+        2022-02-23 vs. 2022-03-03
+
+        5. drastic change sim: 0.30, z-score: 1.67
+        ⚂T⚀p⚁T⚁T⚁p⚂p vs. ⚂T⚁r□r⚂r
+        2022-07-06 vs. 2022-07-14
+
+        6. drastic change sim: 0.94, z-score: 1.51
+        ⚂T⚁T⚁r⚁T vs. ⚂T⚁T⚂r⚁r⚀r⚁T⚁T⚂T
+        2022-07-20 vs. 2022-07-29
+
+        7. drastic change sim: 0.28, z-score: 1.78
+        ⚂T⚁T⚂T vs. ⚂pr⚁p⚂rrrrrrr⚁p
+        2022-09-27 vs. 2022-10-06
+
+        drastic_change_count: 7 (of 55 = 0.13)
+  ```
+</details>
+
+The mean and standard deviations used in computing z-scores may be set with `--change-mean` and `--change-stddev`, respectively. Otherwise, they will be empirically determined. Finally, `--change-zscore-threshold'` (default = 1.5) specifies the number of standard deviations (z-score) a similarity value has to exceed to be considered significant.
+
+The above example segments BLOC `action` strings into weekly bins. To change this, for example, to segment BLOC strings into 14 day bins (`--segmentation-type=day_of_year_bin --days-segment-count=14`), the following command may be used.
+
+```bash
+$ bloc change -m 4 --segmentation-type=day_of_year_bin --days-segment-count=14 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" OSoMe_IU
+```
+
 ### Python script usage:
 
 Generate BLOC from list of `OSoMe_IU`'s tweet `dict` objects stored in a list `osome_iu_tweets_lst` with `add_bloc_sequences()`:
