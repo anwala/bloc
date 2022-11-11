@@ -2,7 +2,6 @@ import logging
 from itertools import combinations
 from sklearn.metrics.pairwise import cosine_similarity
 
-from bloc.generator import add_bloc_sequences
 from bloc.generator import get_word_type
 
 from bloc.util import conv_tf_matrix_to_json_compliant
@@ -10,7 +9,6 @@ from bloc.util import dumpJsonToFile
 from bloc.util import five_number_summary
 from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
-from bloc.util import get_default_symbols
 
 logger = logging.getLogger('bloc.bloc')
 
@@ -46,12 +44,11 @@ def run_subcommands(args, subcommand, bloc_collection):
         'top_ngrams_add_all_docs': args.top_ngrams_add_all_docs #set to False if tf_matrices['top_ngrams']['all_docs'] not needed. If True, keep_tf_matrix must be True
     }
 
-    all_bloc_symbols = get_default_symbols()
     #generate collection of BLOC documents
     bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src=args.account_src, src_class=args.account_class)
 
     if( subcommand == 'change' ):
-        return all_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
+        return all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
 
     
     tf_matrices = get_bloc_variant_tf_matrix(
@@ -139,9 +136,9 @@ def pairwise_usr_cmp(tf_mat):
 
     return report
 
-def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None, change_zscore_threshold=1.5):
+def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None, change_zscore_threshold=1.5):
     
-    logger.info('\nall_usr_self_cmp():')
+    logger.info('\nall_bloc_change_usr_self_cmp():')
     logger.info( '\tzscore_sim: Would {}compute change_mean since {} was supplied'.format('' if change_mean is None else 'NOT ', change_mean) )
     logger.info( '\tzscore_sim: Would {}compute change_stddev since {} was supplied'.format('' if change_stddev is None else 'NOT ', change_stddev) )
     logger.info( f'\tzscore_sim: change_zscore_threshold: {change_zscore_threshold}' )
@@ -149,13 +146,13 @@ def all_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=No
     all_self_sim_reports = []
     for u_bloc in bloc_collection:   
 
-        u_bloc['change_report'] = usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, change_mean=change_mean, change_stddev=change_stddev, change_zscore_threshold=change_zscore_threshold)
+        u_bloc['change_report'] = bloc_change_usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, change_mean=change_mean, change_stddev=change_stddev, change_zscore_threshold=change_zscore_threshold)
         all_self_sim_reports.append(u_bloc)
 
     return all_self_sim_reports
 
 
-def usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, change_stddev, change_zscore_threshold):
+def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, change_stddev, change_zscore_threshold):
 
     def self_doc_lst(bloc_segments, alphabet):
         
