@@ -591,7 +591,7 @@ $ bloc change -m 4 --no-sort-action-words --bloc-alphabets action --bearer-token
 ```
 
 <details>
-  <summary>Partial output of change report which identifies:</summary>
+  <summary>Output of change report which identifies adjacent BLOC segments that significantly differ:</summary>
   
   ```
     ...
