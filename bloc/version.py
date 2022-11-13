@@ -1,1 +1,1 @@
-__appversion__ = '1.1.0'
+__appversion__ = '1.2.0'

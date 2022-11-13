@@ -34,7 +34,8 @@ setup(
         'numpy',
         'osometweet',
         'requests-oauthlib',
-        'sklearn',
+        'scipy',
+        'scikit-learn',
         'textblob'
     ],
     scripts=[
