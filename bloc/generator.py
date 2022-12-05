@@ -1186,7 +1186,13 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     prev_twt = ''
     user_id = ''
     screen_name = ''
-    tweets = sorted( tweets, key=lambda x: x['id'] )
+    '''
+        Tweets created post snowflake (I think after 2010-11-04T21:02:48.000Z), can be sorted by ID, 
+        since the snowflake algorithm ensures that tweet IDs increase with time.
+
+        To accommodate sorting tweets created pre and post snowflake sort with time and tweet ID
+    '''
+    tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] + ' ' + x['id'] )
     
     more_details = {
         'total_tweets': twt_len,

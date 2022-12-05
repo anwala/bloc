@@ -262,7 +262,8 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             #here means sim change is more than 1 - std. dev from mean, so it could indicate drastic change
             logger.info( '\t{}. drastic change sim: {:.2f}, z-score: {:.2f}'.format(drastic_change_count+1, sm['sim'], zscore_sim) )
             logger.info( '\t{} vs. {}'.format(self_bloc_doc_lst[fst_indx]['text'], self_bloc_doc_lst[sec_indx]['text']) )
-            logger.info( '\t{} vs. {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
+            logger.info( '\t{} -- {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
+
             drastic_change_count += 1
 
         logger.info( '\tdrastic_change_count: {} (of {} = {:.2f})'.format(drastic_change_count, len(self_sim_report['self_sim'][alph]), drastic_change_count/len(self_sim_report['self_sim'][alph])) )
