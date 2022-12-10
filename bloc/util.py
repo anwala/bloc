@@ -1006,6 +1006,8 @@ def five_number_summary(nums):
         return {}
 
     num_lst = copy.deepcopy(nums)
+    num_lst.sort()
+    
     summary_stats = {}
     quarts = np.quantile(num_lst, [0.25,0.5,0.75])
 
