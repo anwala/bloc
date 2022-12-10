@@ -249,8 +249,8 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             if( zscore_stddev == 0 ):
                 continue
 
-            zscore_sim = (abs(sm['sim'] - zscore_mean))/zscore_stddev
-            if( zscore_sim <= change_zscore_threshold ):
+            zscore_sim = (sm['sim'] - zscore_mean)/zscore_stddev
+            if( abs(zscore_sim) <= change_zscore_threshold ):
                 continue
 
             fst_indx = sm['fst_doc_indx']

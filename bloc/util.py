@@ -238,7 +238,7 @@ def gzipTextFile(path, txt):
 #/stringmatrix/vector manipulation - start
 
 def get_color_txt(txt, ansi_code='91m'):
-    return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[00m'.format(txt)
+    return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[0m'.format(txt)
 
 def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅.|()*]+)', ansi_code='91m'):
 

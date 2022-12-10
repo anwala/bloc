@@ -1192,7 +1192,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
 
         To accommodate sorting tweets created pre and post snowflake sort with time and tweet ID
     '''
-    tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] + ' ' + x['id'] )
+    tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] + ' ' + str(x['id']) )
     
     more_details = {
         'total_tweets': twt_len,
