@@ -110,7 +110,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-sec
 
 For Twitter v2 (each page returns a maximum of 100 tweets):
 ```bash
-$ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
+$ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="$BEARER_TOKEN" OSoMe_IU
 ```
 <details>
   <summary>Output:</summary>
@@ -141,7 +141,7 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
 
 Note that you could generate BLOC strings for multiple accounts:
 ```bash
-$ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="foo" OSoMe_IU acnwala
+$ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="$BEARER_TOKEN" OSoMe_IU acnwala
 ```
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
@@ -149,7 +149,7 @@ For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
 The following command generates BLOC strings for multiple accounts, `@FoxNews`, `@CNN`, `@POTUS`, `@SpeakerPelosi`, `@GOPLeader`, `@GenerateACat`, and `@storygraphbot`. Next, it tokenizes the string using pauses (`[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]`). Next, it generates TF-IDF vectors for all accounts using the BLOC words as features. Next, it computes (average) cosine similarity across all pairs, and writes the output to `accounts_sim.jsonl`:
 ```bash
-$ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+$ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="$BEARER_TOKEN" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
 ```
 <details>
   <summary>Partial output of cosine similarity values across all pairs of accounts in descending order:</summary>
@@ -477,7 +477,7 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
 The following command generates the top BLOC words for the same accounts in Example 3. Similar to Example 3, after generating BLOC strings, it tokenizes using pauses, print the top BLOC words for individual accounts and across all accounts, and writes the output to `top_bloc_words.json`:
 
 ```bash
-$ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+$ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="$BEARER_TOKEN" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
 ```
 
 <details>
