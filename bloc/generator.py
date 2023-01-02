@@ -1038,8 +1038,11 @@ def get_bloc_content_sem_ent_seq(symbols, tweet, content_semantic_add_pause=Fals
 def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_number', days_segment_count=-1):
 
     bloc_info['local_time'] = datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S')
-    bloc_info['week_number'] = format(local_time.year, '04d') + '.' + format(local_time.isocalendar()[1], '03d')
-
+    '''
+        isocalendar() returns (ISO Year, ISO Week Number, and ISO Weekday), note that local_time.year is not necessary = to isocalendar()[0] (iso calendar year), e.g., local time of 2018-12-31 20:50:51+00:00 has iso calendar values (2019, 1, 1)
+        that's the reason for changing format(local_time.year, '04d') to local_time.isocalendar()[0]
+    '''
+    bloc_info['week_number'] = format(local_time.isocalendar()[0], '04d') + '.' + format(local_time.isocalendar()[1], '03d')
 
     if( segmentation_type == 'yyyy-mm-dd' ):
         bloc_info['yyyy-mm-dd'] = datetime.strftime(created_at, '%Y-%m-%d')
@@ -1416,7 +1419,9 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     payload = add_bloc_sequences(tweets, **kwargs)
     
     payload['elapsed_time'] = str(delta)
-    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'], kwargs.get('segmentation_type', None))
+    if( kwargs.get('subcommand', '') != 'change' ):
+        #change has special printer, so skip printing BLOC here
+        post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'], kwargs.get('segmentation_type', None))    
 
     return payload
 

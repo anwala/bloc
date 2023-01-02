@@ -238,6 +238,18 @@ def gzipTextFile(path, txt):
 #/stringmatrix/vector manipulation - start
 
 def get_color_txt(txt, ansi_code='91m'):
+    '''
+        #https://stackoverflow.com/a/287944
+        HEADER = '\033[95m'
+        OKBLUE = '\033[94m'
+        OKCYAN = '\033[96m'
+        OKGREEN = '\033[92m'
+        WARNING = '\033[93m'
+        FAIL = '\033[91m'
+        ENDC = '\033[0m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+    '''
     return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[0m'.format(txt)
 
 def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅.|()*]+)', ansi_code='91m'):

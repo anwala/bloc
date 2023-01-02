@@ -2,15 +2,65 @@ import logging
 from itertools import combinations
 from sklearn.metrics.pairwise import cosine_similarity
 
+from bloc.generator import get_timeline_request_dets
 from bloc.generator import get_word_type
 
+from bloc.util import color_bloc_action_str
 from bloc.util import conv_tf_matrix_to_json_compliant
 from bloc.util import dumpJsonToFile
 from bloc.util import five_number_summary
 from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
+from bloc.util import get_color_txt
 
 logger = logging.getLogger('bloc.bloc')
+
+def print_change_report(change_report, args):
+
+    def single_user_change_rep(chng, alph, args):
+
+        logger.info( f'{alph}: (change highlighted in red)' )
+
+        bloc_segments = list( chng.get('bloc_segments', {}).get('segments', {}).keys() )
+        bloc_segments.sort()
+        if( len(bloc_segments) == 0 ):
+            return
+
+        sm = {}
+        bloc_alph_str = ''
+        segment_member = {}
+
+        for sm in chng['change_report']['self_sim'].get(alph, []):
+            
+            changed_flag = sm.get('changed', False)
+
+            fst_key = bloc_segments[ sm['fst_doc_indx'] ]
+            sec_key = bloc_segments[ sm['sec_doc_indx'] ]
+
+            fst_doc = chng['bloc_segments']['segments'][fst_key][alph]
+            sec_doc = chng['bloc_segments']['segments'][sec_key][alph]
+
+            if( changed_flag is True ):
+                segment_member[ sm['sec_doc_indx'] ] = True
+                fst_doc = color_bloc_action_str(fst_doc)
+            elif( sm['fst_doc_indx'] in segment_member ):
+                fst_doc = color_bloc_action_str(fst_doc)
+
+            bloc_alph_str += fst_doc + ' | '
+        
+        if( sm.get('sec_doc_indx', None) in segment_member ):
+            sec_doc = color_bloc_action_str(sec_doc)
+        
+        bloc_alph_str += sec_doc
+
+        logger.info( f'{bloc_alph_str}\n' )
+
+    for chng in change_report:
+        
+        logger.info( get_timeline_request_dets(chng) )
+        for alph in args.bloc_alphabets:
+            single_user_change_rep(chng, alph, args)
+    
 
 def run_subcommands(args, subcommand, bloc_collection):
 
@@ -48,8 +98,9 @@ def run_subcommands(args, subcommand, bloc_collection):
     bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src=args.account_src, src_class=args.account_class)
 
     if( subcommand == 'change' ):
-        return all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
-
+        change_report = all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
+        print_change_report(change_report, args)
+        return change_report
     
     tf_matrices = get_bloc_variant_tf_matrix(
         bloc_doc_lst, 
@@ -106,6 +157,9 @@ def pairwise_usr_cmp(tf_mat):
         sec_u = tf_mat['tf_idf_matrix'][sec_u_indx]
 
         sim = cosine_similarity( [fst_u['tf_vector']], [sec_u['tf_vector']] )[0][0]
+        sim = 1 if sim > 1 else sim
+        sim = -1 if sim < -1 else sim
+        
         avg_sim.append(sim)
         report.append({
             'sim': sim,
@@ -141,7 +195,7 @@ def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, ch
     logger.info('\nall_bloc_change_usr_self_cmp():')
     logger.info( '\tzscore_sim: Would {}compute change_mean since {} was supplied'.format('' if change_mean is None else 'NOT ', change_mean) )
     logger.info( '\tzscore_sim: Would {}compute change_stddev since {} was supplied'.format('' if change_stddev is None else 'NOT ', change_stddev) )
-    logger.info( f'\tzscore_sim: change_zscore_threshold: {change_zscore_threshold}' )
+    logger.info( f'\tzscore_sim: change_zscore_threshold: {change_zscore_threshold}\n' )
 
     all_self_sim_reports = []
     for u_bloc in bloc_collection:   
@@ -151,7 +205,6 @@ def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, ch
 
     return all_self_sim_reports
 
-
 def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, change_stddev, change_zscore_threshold):
 
     def self_doc_lst(bloc_segments, alphabet):
@@ -160,8 +213,11 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             return []
 
         doc_lst = []
-        for seg_id, seg_dets in bloc_segments['segments'].items():
+        seg_keys = list(bloc_segments['segments'].keys())
+        seg_keys.sort()
+        for seg_id in seg_keys:
             
+            seg_dets = bloc_segments['segments'][seg_id]
             if( alphabet not in seg_dets ):
                 continue
 
@@ -202,6 +258,8 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             pre_vect = self_mat['tf_idf_matrix'][0]['tf_vector']
             cur_vect = self_mat['tf_idf_matrix'][1]['tf_vector']
             sim = cosine_similarity( pre_vect, cur_vect )[0][0]
+            sim = 1 if sim > 1 else sim
+            sim = -1 if sim < -1 else sim
 
             all_self_sim.append({'fst_doc_indx': i-1, 'sec_doc_indx': i, 'sim': sim})
 
@@ -227,9 +285,8 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         local_dates.sort()
         return local_dates
 
-    logger.info(usr_bloc['screen_name'])
-
-    self_sim_report = {'self_sim': {}}
+    logger.info('change report for {}'.format(usr_bloc['screen_name']))
+    self_sim_report = {'self_sim': {}, 'change_rates': {}}
     for alph in bloc_alphabets:
         
         self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
@@ -243,7 +300,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         zscore_stddev = summary_stats['pstdev'] if change_stddev is None else change_stddev
 
         
-        drastic_change_count = 0
+        change_rate = 0
         for sm in self_sim_report['self_sim'][alph]:
             
             if( zscore_stddev == 0 ):
@@ -259,14 +316,16 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             st_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[fst_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
             en_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[sec_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
 
-            #here means sim change is more than 1 - std. dev from mean, so it could indicate drastic change
-            logger.info( '\t{}. drastic change sim: {:.2f}, z-score: {:.2f}'.format(drastic_change_count+1, sm['sim'], zscore_sim) )
+            #here means sim change is more than 1 - std. dev from mean, so it could indicate change
+            logger.info( '\t{}. change sim: {:.2f}, z-score: {:.2f}'.format(change_rate+1, sm['sim'], zscore_sim) )
             logger.info( '\t{} vs. {}'.format(self_bloc_doc_lst[fst_indx]['text'], self_bloc_doc_lst[sec_indx]['text']) )
             logger.info( '\t{} -- {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
 
-            drastic_change_count += 1
+            sm['changed'] = True
+            change_rate += 1
 
-        logger.info( '\tdrastic_change_count: {} (of {} = {:.2f})'.format(drastic_change_count, len(self_sim_report['self_sim'][alph]), drastic_change_count/len(self_sim_report['self_sim'][alph])) )
+        self_sim_report['change_rates'][alph] = change_rate/len(self_sim_report['self_sim'][alph])
+        logger.info( '\tchange_rate: {:.2f} ({}/{})'.format(self_sim_report['change_rates'][alph], change_rate, len(self_sim_report['self_sim'][alph])) )
         logger.info('')
         
 

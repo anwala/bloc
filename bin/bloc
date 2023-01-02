@@ -137,6 +137,7 @@ def main():
 
     parser = get_generic_args(subcommand)
     args = parser.parse_args()
+    args.subcommand = subcommand
     
     bloc_payload = proc_req(args, subcommand)
     if( subcommand != '' ):
