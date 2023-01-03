@@ -21,9 +21,7 @@ def print_change_report(change_report, args):
 
         logger.info( f'{alph}: (change highlighted in red)' )
 
-        bloc_segments = list( chng.get('bloc_segments', {}).get('segments', {}).keys() )
-        bloc_segments.sort()
-        if( len(bloc_segments) == 0 ):
+        if( len(chng.get('bloc_segments', {}).get('segments', {})) == 0 ):
             return
 
         sm = {}
@@ -34,21 +32,21 @@ def print_change_report(change_report, args):
             
             changed_flag = sm.get('changed', False)
 
-            fst_key = bloc_segments[ sm['fst_doc_indx'] ]
-            sec_key = bloc_segments[ sm['sec_doc_indx'] ]
+            fst_key = sm['fst_doc_seg_id']
+            sec_key = sm['sec_doc_seg_id']
 
             fst_doc = chng['bloc_segments']['segments'][fst_key][alph]
             sec_doc = chng['bloc_segments']['segments'][sec_key][alph]
 
             if( changed_flag is True ):
-                segment_member[ sm['sec_doc_indx'] ] = True
+                segment_member[ sm['sec_doc_seg_id'] ] = True
                 fst_doc = color_bloc_action_str(fst_doc)
-            elif( sm['fst_doc_indx'] in segment_member ):
+            elif( sm['fst_doc_seg_id'] in segment_member ):
                 fst_doc = color_bloc_action_str(fst_doc)
 
             bloc_alph_str += fst_doc + ' | '
         
-        if( sm.get('sec_doc_indx', None) in segment_member ):
+        if( sm.get('sec_doc_seg_id', None) in segment_member ):
             sec_doc = color_bloc_action_str(sec_doc)
         
         bloc_alph_str += sec_doc
@@ -261,7 +259,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             sim = 1 if sim > 1 else sim
             sim = -1 if sim < -1 else sim
 
-            all_self_sim.append({'fst_doc_indx': i-1, 'sec_doc_indx': i, 'sim': sim})
+            all_self_sim.append({'fst_doc_seg_id': self_bloc_doc_lst[i-1]['seg_id'], 'sec_doc_seg_id': self_bloc_doc_lst[i]['seg_id'], 'sim': sim})
 
             '''
             print('d1:', fst_doc)
@@ -310,15 +308,16 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             if( abs(zscore_sim) <= change_zscore_threshold ):
                 continue
 
-            fst_indx = sm['fst_doc_indx']
-            sec_indx = sm['sec_doc_indx']
+            fst_doc = usr_bloc['bloc_segments']['segments'][ sm['fst_doc_seg_id'] ][alph]
+            sec_doc = usr_bloc['bloc_segments']['segments'][ sm['sec_doc_seg_id'] ][alph]
 
-            st_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[fst_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
-            en_segment_date = get_segment_dates(seg_id=self_bloc_doc_lst[sec_indx]['seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
+            st_segment_date = get_segment_dates(seg_id=sm['fst_doc_seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
+            en_segment_date = get_segment_dates(seg_id=sm['sec_doc_seg_id'], segments_details=usr_bloc['bloc_segments']['segments_details'])
 
             #here means sim change is more than 1 - std. dev from mean, so it could indicate change
             logger.info( '\t{}. change sim: {:.2f}, z-score: {:.2f}'.format(change_rate+1, sm['sim'], zscore_sim) )
-            logger.info( '\t{} vs. {}'.format(self_bloc_doc_lst[fst_indx]['text'], self_bloc_doc_lst[sec_indx]['text']) )
+            #logger.info( '\t{} vs. {}'.format(self_bloc_doc_lst[fst_indx]['text'], self_bloc_doc_lst[sec_indx]['text']) )
+            logger.info( '\t{} vs. {}'.format(fst_doc, sec_doc) )
             logger.info( '\t{} -- {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
 
             sm['changed'] = True
