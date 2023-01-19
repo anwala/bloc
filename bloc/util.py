@@ -15,6 +15,7 @@ from datetime import datetime
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 
 logger = logging.getLogger('bloc.bloc')
@@ -684,6 +685,14 @@ def conv_tf_matrix_to_json_compliant(tf_mat):
             tf_mat[opt][i]['tf_vector'] = [ float(a) for a in tf_mat[opt][i]['tf_vector'].toarray()[0] ]
 
     return tf_mat
+
+def cosine_sim(fst_vect, sec_vect):
+
+    sim = cosine_similarity( fst_vect, sec_vect )[0][0]
+    sim = 1 if sim > 1 else sim
+    sim = -1 if sim < -1 else sim
+    
+    return sim
 
 def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-zA-Z\'\’-]+[a-zA-Z]+\b|\d+[.,]?\d*', **kwargs):
 

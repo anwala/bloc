@@ -1,12 +1,12 @@
 import logging
 from itertools import combinations
-from sklearn.metrics.pairwise import cosine_similarity
 
 from bloc.generator import get_timeline_request_dets
 from bloc.generator import get_word_type
 
 from bloc.util import color_bloc_action_str
 from bloc.util import conv_tf_matrix_to_json_compliant
+from bloc.util import cosine_sim
 from bloc.util import dumpJsonToFile
 from bloc.util import five_number_summary
 from bloc.util import get_bloc_doc_lst
@@ -15,9 +15,9 @@ from bloc.util import get_color_txt
 
 logger = logging.getLogger('bloc.bloc')
 
-def print_change_report(change_report, args):
+def print_change_report(change_report, bloc_alphabets):
 
-    def single_user_change_rep(chng, alph, args):
+    def single_user_change_rep(chng, alph):
 
         logger.info( f'{alph}: (change highlighted in red)' )
 
@@ -53,11 +53,12 @@ def print_change_report(change_report, args):
 
         logger.info( f'{bloc_alph_str}\n' )
 
+
     for chng in change_report:
         
         logger.info( get_timeline_request_dets(chng) )
-        for alph in args.bloc_alphabets:
-            single_user_change_rep(chng, alph, args)
+        for alph in bloc_alphabets:
+            single_user_change_rep(chng, alph)
     
 
 def run_subcommands(args, subcommand, bloc_collection):
@@ -97,7 +98,7 @@ def run_subcommands(args, subcommand, bloc_collection):
 
     if( subcommand == 'change' ):
         change_report = all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, args.bloc_alphabets, args.change_mean, args.change_stddev, args.change_zscore_threshold)
-        print_change_report(change_report, args)
+        print_change_report(change_report, args.bloc_alphabets)
         return change_report
     
     tf_matrices = get_bloc_variant_tf_matrix(
@@ -154,9 +155,7 @@ def pairwise_usr_cmp(tf_mat):
         fst_u = tf_mat['tf_idf_matrix'][fst_u_indx]
         sec_u = tf_mat['tf_idf_matrix'][sec_u_indx]
 
-        sim = cosine_similarity( [fst_u['tf_vector']], [sec_u['tf_vector']] )[0][0]
-        sim = 1 if sim > 1 else sim
-        sim = -1 if sim < -1 else sim
+        sim = cosine_sim( [fst_u['tf_vector']], [sec_u['tf_vector']] )
         
         avg_sim.append(sim)
         report.append({
@@ -203,6 +202,7 @@ def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, ch
 
     return all_self_sim_reports
 
+
 def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, change_stddev, change_zscore_threshold):
 
     def self_doc_lst(bloc_segments, alphabet):
@@ -242,7 +242,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
                 min_df=2, 
                 ngram=bloc_model['ngram'], 
                 tf_matrix_norm=bloc_model['tf_matrix_norm'], 
-                keep_tf_matrix=bloc_model['keep_tf_matrix'], 
+                keep_tf_matrix=True,#bloc_model['keep_tf_matrix'] 
                 token_pattern=bloc_model['token_pattern'], 
                 bloc_variant=bloc_model['bloc_variant'], 
                 set_top_ngrams=bloc_model['set_top_ngrams'], 
@@ -255,25 +255,62 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             #print('vocab:', self_mat['vocab'])
             pre_vect = self_mat['tf_idf_matrix'][0]['tf_vector']
             cur_vect = self_mat['tf_idf_matrix'][1]['tf_vector']
-            sim = cosine_similarity( pre_vect, cur_vect )[0][0]
-            sim = 1 if sim > 1 else sim
-            sim = -1 if sim < -1 else sim
+            sim = cosine_sim( pre_vect, cur_vect )
 
-            all_self_sim.append({'fst_doc_seg_id': self_bloc_doc_lst[i-1]['seg_id'], 'sec_doc_seg_id': self_bloc_doc_lst[i]['seg_id'], 'sim': sim})
+            all_self_sim.append({'fst_doc_seg_id': self_bloc_doc_lst[i-1]['seg_id'], 'sec_doc_seg_id': self_bloc_doc_lst[i]['seg_id'], 'sim': sim, 'change_profile': get_change_profile(self_mat)})
 
             '''
-            print('d1:', fst_doc)
-            print('d2:', sec_doc)
-            print('v1:', pre_vect.toarray()[0])
-            print('v2:', cur_vect.toarray()[0])
+            print('d1:', fst_doc['text'])
+            print('d2:', sec_doc['text'])
+            print('v:', self_mat['vocab'])
+            #print('v1:', pre_vect.toarray()[0])
+            #print('v2:', cur_vect.toarray()[0])
             print('sim:', sim)
-            print('all_self_sim')
-            print(all_self_sim)
+            #print('all_self_sim')
+            #print(all_self_sim)
             print()
             '''
 
         return all_self_sim
     
+    def get_change_profile(change_mat):
+    
+        vocab = change_mat['vocab']
+        fst_doc_vect = change_mat['tf_idf_matrix'][0]['tf_vector'].toarray()
+        sec_doc_vect = change_mat['tf_idf_matrix'][1]['tf_vector'].toarray()
+
+        #word change
+        #pause change
+        #activity (session) change
+        all_pauses = '□⚀⚁⚂⚃⚄⚅'
+        pause_indices = []
+        words_indices = []
+        for i in range(len(vocab)):
+            
+            if( vocab[i] in all_pauses ):
+                #pause
+                pause_indices.append(i)
+            else:
+                #word
+                words_indices.append(i)
+
+        fst_doc_pause_vect = fst_doc_vect.take(pause_indices)
+        sec_doc_pause_vect = sec_doc_vect.take(pause_indices)
+        
+        fst_doc_words_vect = fst_doc_vect.take(words_indices)
+        sec_doc_words_vect = sec_doc_vect.take(words_indices)
+
+        fst_doc_len = change_mat['tf_matrix'][0]['tf_vector'].toarray().take(words_indices)
+        sec_doc_len = change_mat['tf_matrix'][1]['tf_vector'].toarray().take(words_indices)
+        fst_doc_len = sum(fst_doc_len)
+        sec_doc_len = sum(sec_doc_len)
+
+        return {
+            'pause': 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect]),
+            'word': 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect]),
+            'activity': 1 - (min(fst_doc_len, sec_doc_len)/max(fst_doc_len, sec_doc_len))
+        }
+
     def get_segment_dates(seg_id, segments_details):
 
         if( seg_id not in segments_details ):
