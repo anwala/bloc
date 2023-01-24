@@ -122,7 +122,7 @@ def get_tweet_type(twt):
     else:
         return 'tweet'
 
-def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_lookup=True, timeline_startdate='', timeline_scroll_by_hours=None):
+def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_lookup=True, timeline_startdate='', timeline_scroll_by_hours=None, no_sleep=False):
 
     if( max_pages < 0 ):
         return []
@@ -184,14 +184,22 @@ def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_l
             
 
         if( 'errors' in timeline ):
+            
             logger.error( '\terror: ' + str(timeline['errors']) )
-            #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
-            time.sleep(1)
+            if( no_sleep is False ):
+                #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+                logger.info('\tthrottling request (1): sleeping for 1 second')
+                time.sleep(1)
+            
             continue
 
         if( isinstance(timeline, dict) or len(timeline) == 0 ):
-            #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
-            time.sleep(1)
+            
+            if( no_sleep is False ):
+                #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+                logger.info('\tthrottling request (2): sleeping for 1 second')
+                time.sleep(1)
+
             continue
         
         
@@ -259,13 +267,14 @@ def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_l
                     twt['bloc']['src_follows_tgt'] = relationship['source']['following']
                     twt['bloc']['tgt_follows_src'] = relationship['source']['followed_by']
                     
-        if( sleep_flag ):
+        if( sleep_flag and no_sleep is False ):
             #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+            logger.info('\tthrottling request (3): sleeping for 1 second')
             time.sleep(1)
 
     return tweets
 
-def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timeline_startdate='', timeline_scroll_by_hours=None):
+def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timeline_startdate='', timeline_scroll_by_hours=None, no_sleep=False):
 
     if( max_pages < 0 ):
         return []
@@ -295,12 +304,12 @@ def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timelin
         except:
             genericErrorInfo()
 
-        if( max_pages > 1 ):
-            logger.info('\tsleeping for 3 seconds')
-            time.sleep(3)
+        if( max_pages > 1 and no_sleep is False ):
+            logger.info('\tthrottling request: sleeping for 1 second')
+            time.sleep(1)
 
         if( 'meta' not in response or 'data' not in response ):
-            logger.info('\tno meta and data keys, breaking')
+            logger.info(f'\tno meta and data keys, breaking, response: {str(response)}')
             break        
         
         v1_tweets = conv_v2_tweets_to_v1(response)
@@ -1372,6 +1381,7 @@ def get_timeline_tweets_cache_filename(cache_path, screen_name, max_pages, follo
 def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, following_lookup=False, timeline_startdate='', timeline_scroll_by_hours=None, **kwargs):
 
     kwargs.setdefault('gen_rt_content', True)
+    kwargs.setdefault('no_sleep', False)
     
     kwargs.setdefault('cache_path', '')
     kwargs.setdefault('cache_read', False)
@@ -1407,9 +1417,9 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
     if( len(tweets) == 0 ):
 
         if( isinstance(oauth_or_ostwt, osometweet.OsomeTweet) ):
-            tweets = v2_get_timeline_tweets(oauth_or_ostwt, user_id=user_id, max_pages=max_pages, max_results=kwargs.get('max_results', 100), timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
+            tweets = v2_get_timeline_tweets(oauth_or_ostwt, user_id=user_id, max_pages=max_pages, max_results=kwargs.get('max_results', 100), timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours, no_sleep=kwargs['no_sleep'])
         else:
-            tweets = get_timeline_tweets(oauth_or_ostwt, screen_name, user_id=user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
+            tweets = get_timeline_tweets(oauth_or_ostwt, screen_name, user_id=user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours, no_sleep=kwargs['no_sleep'])
 
     if( cache_filename != '' and kwargs['cache_write'] is True and write_cache ):
         gzipTextFile(cache_filename, json.dumps(tweets, ensure_ascii=False))

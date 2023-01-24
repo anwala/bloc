@@ -71,6 +71,7 @@ def get_generic_args(subcommand):
     parser.add_argument('-m', '--max-pages', type=int, default=1, help='The maximum number of user Timeline pages (20 tweets/page) to extract tweets.')
     parser.add_argument('--max-results', type=int, default=100, help='For Twitter v2, maximum number of tweets to return per request.')
     parser.add_argument('--no-screen-name', action='store_true', help='"screen_names_or_ids" contains user_ids and not screen_names')
+    parser.add_argument('--no-sleep', action='store_true', help='Do not sleep when extracting tweets: switch off rate limiting. Default is False')
     parser.add_argument('-o', '--output', help='Output path')
 
     parser.add_argument('--timeline-startdate', default='', help='Extract tweets published from --timeline-startdate in UTC (YYYY-MM-DD HH:MM:SS).')
@@ -98,7 +99,7 @@ def proc_req(args, subcommand):
     
     params['sort_action_words'] = False if params.get('no_sort_action_words', False) is True else True
     params['keep_bloc_segments'] = True if subcommand == 'change' else params.get('keep_bloc_segments', False)
-    
+
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
     return gen_bloc_for_users( **params )

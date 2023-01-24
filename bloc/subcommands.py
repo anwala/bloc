@@ -25,6 +25,7 @@ def print_change_report(change_report, bloc_alphabets):
             return
 
         sm = {}
+        sec_doc = ''
         bloc_alph_str = ''
         segment_member = {}
 
