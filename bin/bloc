@@ -38,9 +38,12 @@ def get_generic_args(subcommand):
     if( subcommand != '' ):
         parser.add_argument('--account-class', default='', help='Class labels (e.g., bot or cyborgs or humans) of accounts')
         parser.add_argument('--account-src', default='', help='Origin of accounts')
+        
         parser.add_argument('--change-mean', type=float, help='Empirical mean cosine similarity across BLOC segments.')
         parser.add_argument('--change-stddev', type=float, help='Empirical standard deviation across BLOC segments.')
         parser.add_argument('--change-zscore-threshold', type=float, default=1.5, help='Number of standard deviations (z-score) a similarity value has to exceed to be considered significant.')
+
+        parser.add_argument('--sim-no-summary', action='store_true', help='For BLOC sim subcommand, do not present feature importance and cosine sim of user pairs. Default is False (summary is active).')
 
         parser.add_argument('--fold-start-count', type=int, default=4, help='For word models, value marks maximum threshold words must reach before truncation.')
         parser.add_argument('--keep-tf-matrix', action='store_true', help='Keep or do not keep tf_matrix. Default is False.')
@@ -102,6 +105,7 @@ def proc_req(args, subcommand):
 
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
+
     return gen_bloc_for_users( **params )
 
 def write_output(output, payload):

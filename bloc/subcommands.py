@@ -118,7 +118,7 @@ def run_subcommands(args, subcommand, bloc_collection):
         report = print_top_ngrams(tf_matrices)
         report['users'] = [ u['screen_name'] for u in bloc_doc_lst ]
     elif( subcommand == 'sim' ):
-        report = pairwise_usr_cmp(tf_matrices)
+        report = pairwise_usr_cmp(tf_matrices, print_summary=not args.sim_no_summary)
     
     return report
 
@@ -138,7 +138,7 @@ def feature_importance(vocab, fst_vect, sec_vect, k=10):
 
     return feat_importance
 
-def pairwise_usr_cmp(tf_mat):
+def pairwise_usr_cmp(tf_mat, print_summary=True):
 
     logger.info('\npairwise_usr_cmp():')    
 
@@ -148,6 +148,7 @@ def pairwise_usr_cmp(tf_mat):
     
     report = []
     avg_sim = []
+    
     tf_mat = conv_tf_matrix_to_json_compliant(tf_mat)
     indices = list(range(len(tf_mat['tf_idf_matrix'])))     
     pairs = combinations(indices, 2)
@@ -164,6 +165,9 @@ def pairwise_usr_cmp(tf_mat):
             'user_pair_indx': (fst_u_indx, sec_u_indx),
             'user_pair': (fst_u['screen_name'], sec_u['screen_name'])
         })
+
+    if( print_summary is False ):
+        return report
 
     report = sorted( report, key=lambda x: x['sim'], reverse=True )
     avg_sim = 0 if avg_sim == [] else sum(avg_sim)/len(avg_sim)
