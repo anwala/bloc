@@ -156,7 +156,9 @@ def pairwise_usr_cmp(tf_mat, print_summary=True):
     for fst_u_indx, sec_u_indx in pairs:
         fst_u = tf_mat['tf_idf_matrix'][fst_u_indx]
         sec_u = tf_mat['tf_idf_matrix'][sec_u_indx]
-
+        
+        if( len(fst_u['tf_vector']) == 0 or len(sec_u['tf_vector']) == 0 ):
+            continue
         sim = cosine_sim( [fst_u['tf_vector']], [sec_u['tf_vector']] )
         
         avg_sim.append(sim)
@@ -260,8 +262,10 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             #print('vocab:', self_mat['vocab'])
             pre_vect = self_mat['tf_idf_matrix'][0]['tf_vector']
             cur_vect = self_mat['tf_idf_matrix'][1]['tf_vector']
-            sim = cosine_sim( pre_vect, cur_vect )
+            if( pre_vect.nnz == 0 or cur_vect.nnz == 0 ):
+                continue
 
+            sim = cosine_sim( pre_vect, cur_vect )
             all_self_sim.append({'fst_doc_seg_id': self_bloc_doc_lst[i-1]['seg_id'], 'sec_doc_seg_id': self_bloc_doc_lst[i]['seg_id'], 'sim': sim, 'change_profile': get_change_profile(self_mat)})
 
             '''
@@ -309,11 +313,15 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         sec_doc_len = change_mat['tf_matrix'][1]['tf_vector'].toarray().take(words_indices)
         fst_doc_len = sum(fst_doc_len)
         sec_doc_len = sum(sec_doc_len)
+        max_doc_len = max(fst_doc_len, sec_doc_len)
 
+        pause_change = None if fst_doc_pause_vect.shape[0] == 0 or sec_doc_pause_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect])
+        word_change = None if fst_doc_words_vect.shape[0] == 0 or sec_doc_words_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect])
+        activity_change = None if max_doc_len == 0 else 1 - (min(fst_doc_len, sec_doc_len)/max_doc_len)
         return {
-            'pause': 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect]),
-            'word': 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect]),
-            'activity': 1 - (min(fst_doc_len, sec_doc_len)/max(fst_doc_len, sec_doc_len))
+            'pause': pause_change,
+            'word': word_change,
+            'activity': activity_change
         }
 
     def get_segment_dates(seg_id, segments_details):

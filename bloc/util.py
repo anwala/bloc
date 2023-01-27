@@ -687,7 +687,7 @@ def conv_tf_matrix_to_json_compliant(tf_mat):
     return tf_mat
 
 def cosine_sim(fst_vect, sec_vect):
-
+    
     sim = cosine_similarity( fst_vect, sec_vect )[0][0]
     sim = 1 if sim > 1 else sim
     sim = -1 if sim < -1 else sim
