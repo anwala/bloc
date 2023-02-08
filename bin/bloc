@@ -145,11 +145,12 @@ def main():
     args.subcommand = subcommand
     
     bloc_payload = proc_req(args, subcommand)
+    all_users_bloc = bloc_payload.get('all_users_bloc', [])
     if( subcommand != '' ):
-        bloc_payload = run_subcommands(args, subcommand, bloc_payload)
+        all_users_bloc = run_subcommands(args, subcommand, all_users_bloc)
 
     if( args.output is not None ):
-        write_output( args.output, bloc_payload )
+        write_output( args.output, all_users_bloc )
 
 if __name__ == '__main__':
     main()
