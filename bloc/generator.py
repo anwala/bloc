@@ -1205,6 +1205,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     if( kwargs['tweet_order'] == 'reverse' ):
         #normally done for timeline tweets which are ordered in reverse chronological
         tweets.reverse()
+        
     elif( kwargs['tweet_order'] == 'sorted' ):
         '''
             Tweets created post snowflake (I think after 2010-11-04T21:02:48.000Z), can be sorted by ID, 
