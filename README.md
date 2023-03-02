@@ -1,4 +1,10 @@
-## Behavioral Language for Online Classification (BLOC)
+<h1 style="text-align: center;">BLOC</h1>
+
+<p style="text-align: center;">
+<a href="https://pypi.org/project/black/"><img alt="PyPI" src="https://img.shields.io/pypi/v/twitterbloc"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
+<h2 style="text-align: center;">The Behavioral Language for Online Classification</h2>
 BLOC is a language that represents the behaviors of social media accounts irrespective of class (e.g., human or cyborg or bot) or intent (e.g., malicious or benign). BLOC represents behaviors as words consisting of letters drawn from multiple alphabets (e.g., `action` and `content_syntactic`). BLOC words map to features which aid in the study of behaviors, bot and coordination detection, etc.
 
 Even though BLOC can be applied to other social media accounts, this Python tool supports Twitter exclusively. For a comprehensive description of BLOC, please see the BLOC paper, [A General Language for Modeling Social Media Account Behavior](http://arxiv.org/abs/2211.00639). To cite, kindly use:
