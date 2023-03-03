@@ -108,18 +108,22 @@ def proc_req(args, subcommand):
 
     return gen_bloc_for_users( **params )
 
-def write_output(output, payload):
+def write_output(output, payload, user_twt_keys):
+
+    user_args = ' '.join(sys.argv)
+    for ky in user_twt_keys:
+        user_args = user_args.replace(ky, 'REDACTED')
 
     try:
         if( isinstance(payload, list) ):
             with open(output, 'w') as outfile:
                 for u in payload:
-                    u['self'] = ' '.join(sys.argv)
+                    u['self'] = user_args
                     outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
 
             print('\nwrite_output(): wrote:', output)
         else:
-            payload['self'] = ' '.join(sys.argv)
+            payload['self'] = user_args
             dumpJsonToFile(output, payload, indentFlag=False)
     except:
         genericErrorInfo()
@@ -144,13 +148,16 @@ def main():
     args = parser.parse_args()
     args.subcommand = subcommand
     
+    params = vars(args)
+    user_twt_keys = [ params[k] for k in ['bearer_token', 'access_token', 'access_token_secret', 'consumer_key', 'consumer_secret'] if params.get(k, '') != '' ]
+    
     bloc_payload = proc_req(args, subcommand)
     all_users_bloc = bloc_payload.get('all_users_bloc', [])
     if( subcommand != '' ):
         all_users_bloc = run_subcommands(args, subcommand, all_users_bloc)
 
     if( args.output is not None ):
-        write_output( args.output, all_users_bloc )
+        write_output( args.output, all_users_bloc, user_twt_keys )
 
 if __name__ == '__main__':
     main()

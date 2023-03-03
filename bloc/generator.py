@@ -323,7 +323,7 @@ def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timelin
 
             if( twt['id'] in dedup_set ):
                 continue
-
+            
             dedup_set.add( twt['id'] )
             user_screen_name = ' (@' + twt['user']['screen_name'] + ')'
             twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None})
@@ -1229,7 +1229,6 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         screen_name = twt['user']['screen_name']
 
         ex_txt = get_twt_text_exclusively( twt[twt_text_ky], twt['entities'] )
-        
         delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         twt['bloc']['bloc_sequences'] = {}
 
@@ -1401,8 +1400,16 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
 
     kwargs.setdefault('ansi_code', '91m')
     
-    kwargs.setdefault('twitter_api_tweet_fields', None)
-    kwargs.setdefault('twitter_api_expansion_fields', None)
+    tweet_fields = osometweet.TweetFields()
+    user_fields = osometweet.UserFields()
+    expansions = osometweet.TweetExpansions()
+    
+    tweet_fields.fields = ['id', 'text', 'source', 'lang', 'created_at', 'entities', 'context_annotations', 'referenced_tweets']
+    user_fields.fields = ['public_metrics', 'created_at']
+    expansions.expansions = ['author_id', 'in_reply_to_user_id', 'geo.place_id', 'attachments.media_keys', 'referenced_tweets.id', 'referenced_tweets.id.author_id']
+    
+    kwargs.setdefault('twitter_api_tweet_fields', tweet_fields + user_fields)
+    kwargs.setdefault('twitter_api_expansion_fields', expansions)
     
     tweets = []
     write_cache = True
