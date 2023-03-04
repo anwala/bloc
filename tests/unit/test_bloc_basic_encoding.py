@@ -17,7 +17,7 @@ class TestBLOC(unittest.TestCase):
         
         all_bloc_symbols = get_default_symbols()
         tweet_order = 'NoOp'#Tweets already in reverse order, so no need to reverse them again
-        bloc_alphabets = ['action', 'content_syntactic', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment']
+        bloc_alphabets = ['action', 'content_syntactic', 'change', 'content_semantic_entity', 'content_semantic_sentiment']
 
         for u in [TestBLOC.fst_tweets, TestBLOC.sec_tweets]:
             
