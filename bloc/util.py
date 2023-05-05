@@ -11,6 +11,7 @@ import numpy as np
 import scipy.sparse as sp
 import statistics
 
+from argparse import Namespace
 from datetime import datetime
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -407,6 +408,48 @@ def gen_folded_vocab( tf_matrix, bloc_variant ):
 def get_default_symbols():
     bloc_symbols_file = '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__)))
     return getDictFromFile(bloc_symbols_file)
+
+def get_bloc_params(user_ids, bearer_token, token_pattern='word', no_screen_name=True, account_src='Twitter search', no_sleep=True, max_pages=1, max_results=100, bloc_alphabets=['action', 'content_syntactic'], **kwargs):
+    
+    #bloc_alphabets = ['action', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment']
+    params = {
+        'access_token': '', 'access_token_secret': '', 'consumer_key': '', 'consumer_secret': '', 
+        'account_class': '',
+        'account_src': account_src,
+        'ansi_code': '91m', 
+        'bearer_token': bearer_token, 
+        'blank_mark': 60, 'minute_mark': 5, 'segmentation_type': 'week_number', 'days_segment_count': -1, 
+        'bloc_alphabets': bloc_alphabets, 'bloc_symbols_file': None, 
+        'cache_path': '', 'cache_read': False, 'cache_write': False, 
+        'change_mean': 0.61, 
+        'change_stddev': 0.3, 
+        'change_zscore_threshold': 1.5,
+        'fold_start_count': 4,
+        'following_lookup': False, 
+        'keep_bloc_segments': False, 
+        'keep_tf_matrix': False,
+        'keep_tweets': False, 
+        'log_file': '', 'log_format': '', 'log_level': 'INFO', 'log_dets': {'level': 20},
+        'max_pages': max_pages, 'max_results': max_results, 
+        'ngram': 1 if token_pattern == 'word' else 2,
+        'no_screen_name': no_screen_name, 'no_sleep': no_sleep, 
+        'output': None, 
+        'screen_names_or_ids': user_ids, 
+        'set_top_ngrams': False,
+        'sim_no_summary': True,
+        'sort_action_words': False,#
+        'subcommand': '', 
+        'tf_matrix_norm': '',
+        'timeline_startdate': '', 'timeline_scroll_by_hours': None, 'time_function': 'f2', 
+        'token_pattern': token_pattern,
+        'top_ngrams_add_all_docs': False,
+        'tweet_order': 'reverse'
+    }
+
+    for ky, val in kwargs.items():
+        params[ky] = val
+
+    return params, Namespace(**params)
 
 def gen_bloc_variant_tf_mat( tf_matrix, bloc_variant ):
 

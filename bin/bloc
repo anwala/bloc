@@ -39,8 +39,13 @@ def get_generic_args(subcommand):
         parser.add_argument('--account-class', default='', help='Class labels (e.g., bot or cyborgs or humans) of accounts')
         parser.add_argument('--account-src', default='', help='Origin of accounts')
         
-        parser.add_argument('--change-mean', type=float, help='Empirical mean cosine similarity across BLOC segments.')
-        parser.add_argument('--change-stddev', type=float, help='Empirical standard deviation across BLOC segments.')
+        #The default change parameters are for action. For now when running change, run separately for all BLOC alphabets and set the change parameters accordingly.
+        '''
+            action: Empirical cosine sim dist for humans: {"minimum":0.0,"q1":0.33609692727625756,"median":0.6766282517941079,"q3":0.8832042603773356,"maximum":1,"mean":0.6129176186770743,"range":1.0,"count":62970,"pstdev":0.301971126053064,"user_class":"human","accouts":"astroturf cresci-17 gregory_purchased midterm-2018 stock verified botwiki gilani-17 kevin_feedback varol-icwsm zoher-organization"}
+            content_syntactic: Empirical cosine sim dist for humans: {"minimum":0.0,"q1":0.0,"median":0.4494364165239821,"q3":0.833633638968502,"maximum":1.0,"mean":0.4536984627121439,"range":1.0,"count":53615,"pstdev":0.3865080012262164,"user_class":"human"}
+        '''
+        parser.add_argument('--change-mean', type=float, default=0.61, help='Empirical mean cosine similarity across BLOC segments.')
+        parser.add_argument('--change-stddev', type=float, default=0.30, help='Empirical standard deviation across BLOC segments.')
         parser.add_argument('--change-zscore-threshold', type=float, default=1.5, help='Number of standard deviations (z-score) a similarity value has to exceed to be considered significant.')
 
         parser.add_argument('--sim-no-summary', action='store_true', help='For BLOC sim subcommand, do not present feature importance and cosine sim of user pairs. Default is False (summary is active).')

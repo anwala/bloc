@@ -1201,9 +1201,10 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     prev_twt = ''
     user_id = ''
     screen_name = ''
- 
+    #BLOC runs with tweets in chronological order. Since timeline tweets are by default in reverse chronological order, fix by reversing.
     if( kwargs['tweet_order'] == 'reverse' ):
         #normally done for timeline tweets which are ordered in reverse chronological
+        #reverse chronological: most recent tweet is first oldest tweet is last
         tweets.reverse()
         
     elif( kwargs['tweet_order'] == 'sorted' ):

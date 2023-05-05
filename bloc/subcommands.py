@@ -13,9 +13,35 @@ from bloc.util import get_bloc_doc_lst
 from bloc.util import get_bloc_variant_tf_matrix
 from bloc.util import get_color_txt
 
+from copy import deepcopy
+
 logger = logging.getLogger('bloc.bloc')
 
 def print_change_report(change_report, bloc_alphabets):
+
+    def single_user_change_prof(chng, alph):
+
+        change_profiles = {}
+        for sm in chng['change_report']['self_sim'].get(alph, []):
+            
+            if( sm.get('changed', False) is False ):
+                continue
+
+            for change_type, change_score in sm['change_profile'].items():
+                change_profiles.setdefault(change_type, [])
+                change_profiles[change_type].append(change_score)
+
+        if( len(change_profiles) != 0 ):
+            logger.info('summary of kinds of changes (change profile)')
+        
+        change_profiles = sorted( change_profiles.items(), key=lambda x: x[1], reverse=True )
+        for change_type, change_scores in change_profiles:
+            avg = 0 if len(change_scores) == 0 else sum(change_scores)/len(change_scores)
+            if( avg > -1 ):
+                logger.info('\t{:.4f}: {}'.format(avg, change_type))
+            else:
+                logger.info('\tNA    : {}'.format(change_type))
+
 
     def single_user_change_rep(chng, alph):
 
@@ -60,6 +86,7 @@ def print_change_report(change_report, bloc_alphabets):
         logger.info( get_timeline_request_dets(chng) )
         for alph in bloc_alphabets:
             single_user_change_rep(chng, alph)
+            single_user_change_prof(chng, alph)
     
 
 def run_subcommands(args, subcommand, bloc_collection):
@@ -202,10 +229,12 @@ def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, ch
     logger.info( f'\tzscore_sim: change_zscore_threshold: {change_zscore_threshold}\n' )
 
     all_self_sim_reports = []
+    
     for u_bloc in bloc_collection:   
 
         u_bloc['change_report'] = bloc_change_usr_self_cmp(u_bloc, bloc_model, bloc_alphabets, change_mean=change_mean, change_stddev=change_stddev, change_zscore_threshold=change_zscore_threshold)
-        all_self_sim_reports.append(u_bloc)
+        #deepcopy used because on the event that change is run again on the same input, ensure to detach memory link with previous result
+        all_self_sim_reports.append( deepcopy(u_bloc) )
 
     return all_self_sim_reports
 
@@ -223,12 +252,13 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         for seg_id in seg_keys:
             
             seg_dets = bloc_segments['segments'][seg_id]
+
             if( alphabet not in seg_dets ):
                 continue
 
             if( seg_dets[alphabet].strip() == '' ):
                 continue
-            
+                        
             doc_lst.append({ 'text': seg_dets[alphabet], 'seg_id': seg_id })
 
         return doc_lst
@@ -315,9 +345,9 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         sec_doc_len = sum(sec_doc_len)
         max_doc_len = max(fst_doc_len, sec_doc_len)
 
-        pause_change = None if fst_doc_pause_vect.shape[0] == 0 or sec_doc_pause_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect])
-        word_change = None if fst_doc_words_vect.shape[0] == 0 or sec_doc_words_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect])
-        activity_change = None if max_doc_len == 0 else 1 - (min(fst_doc_len, sec_doc_len)/max_doc_len)
+        pause_change = -1 if fst_doc_pause_vect.shape[0] == 0 or sec_doc_pause_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect])
+        word_change = -1 if fst_doc_words_vect.shape[0] == 0 or sec_doc_words_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect])
+        activity_change = -1 if max_doc_len == 0 else 1 - (min(fst_doc_len, sec_doc_len)/max_doc_len)
         return {
             'pause': pause_change,
             'word': word_change,
@@ -334,6 +364,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         return local_dates
 
     logger.info('change report for {}'.format(usr_bloc['screen_name']))
+    not_enough_data_flag = '\tNot enough data to compute change'
     self_sim_report = {'self_sim': {}, 'change_rates': {}}
     for alph in bloc_alphabets:
         
@@ -356,6 +387,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
             zscore_sim = (sm['sim'] - zscore_mean)/zscore_stddev
             if( abs(zscore_sim) <= change_zscore_threshold ):
+                not_enough_data_flag = ''
                 continue
 
             fst_doc = usr_bloc['bloc_segments']['segments'][ sm['fst_doc_seg_id'] ][alph]
@@ -370,13 +402,14 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             logger.info( '\t{} vs. {}'.format(fst_doc, sec_doc) )
             logger.info( '\t{} -- {}\n'.format(st_segment_date[0], en_segment_date[-1]) )
 
+            not_enough_data_flag = ''
             sm['changed'] = True
             change_rate += 1
 
         self_sim_report['change_rates'][alph] = change_rate/len(self_sim_report['self_sim'][alph])
-        logger.info( '\tchange_rate: {:.2f} ({}/{})'.format(self_sim_report['change_rates'][alph], change_rate, len(self_sim_report['self_sim'][alph])) )
-        logger.info('')
-        
+        logger.info( '\tchange_rate: {:.2f} ({}/{})\n'.format(self_sim_report['change_rates'][alph], change_rate, len(self_sim_report['self_sim'][alph])) )
+    
+    logger.info(not_enough_data_flag)
 
     return self_sim_report
 
