@@ -365,7 +365,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
     logger.info('change report for {}'.format(usr_bloc['screen_name']))
     not_enough_data_flag = '\tNot enough data to compute change'
-    self_sim_report = {'self_sim': {}, 'change_rates': {}}
+    self_sim_report = {'self_sim': {}, 'change_rates': {}, 'avg_change_profile': {}}
     for alph in bloc_alphabets:
         
         self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
@@ -380,6 +380,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
         
         change_rate = 0
+        sum_change_profile = {}
         for sm in self_sim_report['self_sim'][alph]:
             
             if( zscore_stddev == 0 ):
@@ -406,7 +407,18 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
             sm['changed'] = True
             change_rate += 1
 
+            for chng_dim, chng_val in sm['change_profile'].items():
+                sum_change_profile.setdefault(chng_dim, 0)
+                sum_change_profile[chng_dim] += chng_val
+
+
         self_sim_report['change_rates'][alph] = change_rate/len(self_sim_report['self_sim'][alph])
+        if( change_rate != 0 ):
+            for chng_dim in sum_change_profile:
+                sum_change_profile[chng_dim] = sum_change_profile[chng_dim]/change_rate
+
+            self_sim_report['avg_change_profile'][alph] = sum_change_profile
+
         logger.info( '\tchange_rate: {:.2f} ({}/{})\n'.format(self_sim_report['change_rates'][alph], change_rate, len(self_sim_report['self_sim'][alph])) )
     
     logger.info(not_enough_data_flag)
