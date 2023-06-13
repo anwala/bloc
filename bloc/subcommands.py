@@ -276,10 +276,9 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
             self_mat = get_bloc_variant_tf_matrix(
                 [fst_doc, sec_doc], 
-                min_df=2, 
                 ngram=bloc_model['ngram'], 
                 tf_matrix_norm=bloc_model['tf_matrix_norm'], 
-                keep_tf_matrix=True,#bloc_model['keep_tf_matrix'] 
+                keep_tf_matrix=True,
                 token_pattern=bloc_model['token_pattern'], 
                 bloc_variant=bloc_model['bloc_variant'], 
                 set_top_ngrams=bloc_model['set_top_ngrams'], 
@@ -363,7 +362,9 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         local_dates.sort()
         return local_dates
 
-    logger.info('change report for {}'.format(usr_bloc['screen_name']))
+    change_report_header = 'change report for {}:'.format(usr_bloc['screen_name']) if 'screen_name' in usr_bloc else 'change report:'
+    logger.info(change_report_header)
+
     not_enough_data_flag = '\tNot enough data to compute change'
     self_sim_report = {'self_sim': {}, 'change_rates': {}, 'avg_change_profile': {}}
     for alph in bloc_alphabets:
@@ -387,7 +388,14 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
                 continue
 
             zscore_sim = (sm['sim'] - zscore_mean)/zscore_stddev
-            if( abs(zscore_sim) <= change_zscore_threshold ):
+            '''
+            params, μ = 0.61 (zscore_mean), σ = 0.3 (zscore_stddev), change_zscore_threshold = 1.5
+            zscore -1.5 --------- 0 --------- 1.5
+            
+            cosine sim of 0.16 (z-score = -1.5) and lower cosine values (e.g., 0.15) are considered significant change since they reach the change_zscore_threshold.
+            Larger values (e.g., 0.17 with z-score -1.46) are not considered significant change since they are still close to the mean.
+            '''
+            if( zscore_sim > change_zscore_threshold ):
                 not_enough_data_flag = ''
                 continue
 

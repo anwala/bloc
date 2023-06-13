@@ -761,7 +761,6 @@ def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-
     kwargs.setdefault('tf_idf_norm', 'l2')
     kwargs.setdefault('count_vectorizer_kwargs', {})
 
-    
     #if payload changes, update map_tf_mat_to_doc_ids()
     #also update conv_tf_matrix_to_json_compliant()
     payload = {
