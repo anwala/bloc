@@ -1301,6 +1301,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
 
     if( kwargs['keep_bloc_segments'] is False ):
         bloc_segments['segments'] = {}
+        bloc_segments['segments_details'] = {}
 
     result = {
         'bloc': aggregate_bloc,

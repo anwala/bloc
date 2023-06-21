@@ -2,6 +2,8 @@ import gzip
 
 from bloc.generator import add_bloc_sequences
 from bloc.util import genericErrorInfo
+from bloc.util import get_bloc_params
+from bloc.util import get_default_symbols
 from bloc.util import getDictFromJson
 
 def user_tweets_generator_0(filenames, pos_id_mapping, gen_bloc_params, **kwargs):
@@ -16,8 +18,10 @@ def user_tweets_generator_0(filenames, pos_id_mapping, gen_bloc_params, **kwargs
     '''
 
     index = -1
+    all_bloc_symbols = get_default_symbols()
     rm_doc_text = kwargs.get('rm_doc_text', True)
     keep_bloc_details = kwargs.get('keep_bloc_details', ['created_at_utc', 'screen_name', 'user_id'])
+    gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=kwargs.get('keep_bloc_segments', False), tweet_order=kwargs.get('tweet_order', 'sorted') )
 
     for f in filenames:
         with gzip.open(f, 'rb') as file:
@@ -33,7 +37,7 @@ def user_tweets_generator_0(filenames, pos_id_mapping, gen_bloc_params, **kwargs
                     
                     tweets = row[-1]
                     tweets = getDictFromJson(tweets)
-                    bloc_payload = add_bloc_sequences(tweets, **gen_bloc_params)
+                    bloc_payload = add_bloc_sequences(tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
 
                     if( len(tweets) != 0 and 'bloc' in bloc_payload ):
                         doc = [ bloc_payload['bloc'][dim] for dim in bloc_payload['bloc'] ]

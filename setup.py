@@ -36,7 +36,8 @@ setup(
         'requests-oauthlib',
         'scipy',
         'scikit-learn',
-        'textblob'
+        'textblob',
+        'urllib3==1.26.6'
     ],
     scripts=[
         'bin/bloc'

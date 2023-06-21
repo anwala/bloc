@@ -587,7 +587,7 @@ $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets a
 After generating BLOC `action` (`--bloc-alphabets action`) strings, the strings are grouped into weekly segments since the default `--segmentation-type=week_number`. This means that all BLOC strings generated within the same week are grouped into the same segment. On the `STDOUT`, segments are separated by vertical bars `|`. Next, BLOC vectors (using pauses to tokenize strings into words) for all segments are generated. Next, the cosine similarity across all adjacent segments is computed. Subsequently, the application computes the z-scores (we assume similarity of segments follows a Normal distribution) of all cosine similarity values and attempts to find pairs of segments that significantly differ.
 
 ```bash
-$ bloc change -m 4 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" OSoMe_IU
+$ bloc change --timeline-startdate="2022-11-13 23:59:59" --change-mean=0.61 --change-stddev=0.3 --change-zscore-threshold=-1.5 --token-pattern=word -m 8 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" jesus
 ```
 
 <details>
@@ -595,45 +595,39 @@ $ bloc change -m 4 --no-sort-action-words --bloc-alphabets action --bearer-token
   
   ```
     ...
-    all_usr_self_cmp():
-        zscore_sim: Would compute change_mean since None was supplied
-        zscore_sim: Would compute change_stddev since None was supplied
-        zscore_sim: change_zscore_threshold: 1.5
-    OSoMe_IU
-        action cosine sim summary stats, mean: 0.6412, median: 0.6721, stddev: 0.2016
-        1. drastic change sim: 0.22, z-score: 2.09
-        ⚂r⚂r vs. ⚂T⚁p
-        2021-11-24 vs. 2021-12-01
+    all_bloc_change_usr_self_cmp():
+        zscore_sim: Would NOT compute change_mean since 0.61 was supplied
+        zscore_sim: Would NOT compute change_stddev since 0.3 was supplied
+        zscore_sim: change_zscore_threshold: -1.5
 
-        2. drastic change sim: 1.00, z-score: 1.78
-        ⚂T⚁T⚂T⚁T vs. ⚂T⚁T
-        2021-12-20 vs. 2021-12-28
+    change report for jesus:
+        action cosine sim summary stats, mean: 0.6434, median: 0.6685, stddev: 0.2931
+        1. change sim: 0.00, z-score: -2.03
+        ⚃T vs. ⚄p
+        2017-08-15 -- 2017-09-15
 
-        3. drastic change sim: 0.31, z-score: 1.67
-        ⚂T⚁T vs. ⚃r□r⚂T
-        2021-12-27 vs. 2022-01-08
+        2. change sim: 0.00, z-score: -2.03
+        ⚄p vs. ⚂T⚂T⚁T⚂T
+        2017-09-15 -- 2017-09-24
 
-        4. drastic change sim: 0.24, z-score: 1.97
-        ⚂r⚁r⚁T⚂r⚁T vs. ⚂T⚂p⚀p⚀p⚂T
-        2022-02-23 vs. 2022-03-03
+        3. change sim: 0.15, z-score: -1.52
+        ⚄T vs. ⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p
+        2022-11-06 -- 2022-11-13
 
-        5. drastic change sim: 0.30, z-score: 1.67
-        ⚂T⚀p⚁T⚁T⚁p⚂p vs. ⚂T⚁r□r⚂r
-        2022-07-06 vs. 2022-07-14
+        change_rate: 0.02 (3/190)
 
-        6. drastic change sim: 0.94, z-score: 1.51
-        ⚂T⚁T⚁r⚁T vs. ⚂T⚁T⚂r⚁r⚀r⚁T⚁T⚂T
-        2022-07-20 vs. 2022-07-29
+    @jesus's BLOC for 674.71 week(s), (or 4723 day(s), 1:19), 291 tweet(s) from 2009-12-08 14:54:01 to 2022-11-13 16:13:10
+    action: (change highlighted in red)
+    T | ⚃T | ⚄T | ⚂T⚂T⚁T⚁T⚁T⚂T | ⚃T | ⚂T⚂T | ⚃T⚂T | ⚂T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T | ⚃T | ⚃T⚁T | ⚂T⚂T | ⚂T⚂T⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄T | ⚃T | ⚂T | ⚃T⚁T⚁T⚁T | ⚁T⚁T⚂T⚂T | ⚂T | ⚄T | ⚄T⚂T⚂T | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚂T⚂T⚁T⚁T⚂T | ⚂T⚁T⚁T | ⚂T⚂T | ⚃T | ⚄T | ⚂T⚁T⚂T | ⚃T⚂T⚁T | ⚃T⚁T | ⚄T | ⚃T | ⚄T⚂T⚂T | ⚄T | ⚂T | ⚂T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T⚁T⚂T | ⚃T | ⚄T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚂T | ⚃T | ⚂T | ⚃T | ⚄T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚂T⚁T⚂T | ⚃T | ⚃T | ⚃T | ⚄T⚁T⚁T⚂T | ⚂T⚂T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄p | ⚂T⚂T⚁T⚂T | ⚃T | ⚂T⚁T | ⚃T⚀T | ⚃T□T | ⚄T⚁T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚂T | ⚃T⚂T | ⚂T | ⚄T | ⚂T⚁T | ⚂T | ⚄T | ⚃T | ⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚃T⚁T | ⚂T⚂T⚂T | ⚂T | ⚃T | ⚃T | ⚂T | ⚂T⚁T⚂T | ⚂T | ⚂T | ⚄T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚂T | ⚄T | ⚃T | ⚃T⚁T | ⚂T | ⚄T⚂T | ⚃T | ⚃p | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T□T□T⚁T | ⚃T | ⚄T | ⚄T⚂T⚁π | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p
 
-        7. drastic change sim: 0.28, z-score: 1.78
-        ⚂T⚁T⚂T vs. ⚂pr⚁p⚂rrrrrrr⚁p
-        2022-09-27 vs. 2022-10-06
-
-        drastic_change_count: 7 (of 55 = 0.13)
+    summary of kinds of changes (change profile)
+        1.0000: pause
+        0.8883: word
+        0.5694: activity
   ```
 </details>
 
-The mean and standard deviations used in computing z-scores may be set with `--change-mean` and `--change-stddev`, respectively. Otherwise, they will be empirically determined. Finally, `--change-zscore-threshold'` (default = 1.5) specifies the number of standard deviations (z-score) a similarity value has to exceed to be considered significant.
+The mean and standard deviations used in computing z-scores may be set with `--change-mean` and `--change-stddev`, respectively. Otherwise, they will be empirically determined. Finally, `--change-zscore-threshold'` (default = -1.5) specifies the number of standard deviations (z-score) a similarity value has to exceed to be considered significant.
 
 The above example segments BLOC `action` strings into weekly bins. To change this, for example, to segment BLOC strings into 14 day bins (`--segmentation-type=day_of_year_bin --days-segment-count=14`), the following command may be used.
 
@@ -641,34 +635,62 @@ The above example segments BLOC `action` strings into weekly bins. To change thi
 $ bloc change -m 4 --segmentation-type=day_of_year_bin --days-segment-count=14 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" OSoMe_IU
 ```
 
-### Python script usage:
+To compute change for BLOC `content_syntactic` alphabets, use the following parameters: 
+```
+--change-mean=0.45
+--change-stddev=0.38
+--change-zscore-threshold=-1.5
+```
+
+### Python script usage (see [sample-tweets](tests/unit/sample-tweets) for sample tweets used in this example):
 
 Generate BLOC from list of `OSoMe_IU`'s tweet `dict` objects stored in a list `osome_iu_tweets_lst` with `add_bloc_sequences()`:
 ```python
 from bloc.generator import add_bloc_sequences
+from bloc.util import get_bloc_params
 from bloc.util import get_default_symbols
+from bloc.util import getDictFromJsonGZ
+import json
 
 all_bloc_symbols = get_default_symbols()
-osome_iu_bloc = add_bloc_sequences(osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets= ['action', 'content_syntactic'])
+user_tweets = getDictFromJsonGZ('sample_raw_tweets_1.json.gz')
+
+gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=True, tweet_order='noop')#tweet_order since tweets are assumed sorted in chronological order 
+u_bloc = add_bloc_sequences(user_tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
+
+print(json.dumps(u_bloc, ensure_ascii=False))
 ```
 
 Sample content of `osome_iu_bloc`:
 ```json
 {
-    "bloc": {
-        "action": "T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p ",
-        "content_syntactic": "(Uqt) | (mmmUt)(HmmUt)(mmUφt)(Emmt)(Ut) | (mmmqt) | (EUt)(t)(Ut)(Ut) | (Et)(mUt) | (Ut)(mmqt) | (Ut)(Emt)(mmt)(mmt)(mt)(mUt) | (mmUt)(EUt)(Uqt) | (t)(t)(t) | (Ut)(mqt) | (mUt)(Ut) | (t) "
+  "bloc": {
+    "action": "T | ⚃T | ⚄T | ⚂T⚂T⚁T⚁T⚁T⚂T | ⚃T | ⚂T⚂T | ⚃T⚂T | ⚂T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T | ⚃T | ⚃T⚁T | ⚂T⚂T | ⚂T⚂T⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄T | ⚃T | ⚂T | ⚃T⚁T⚁T⚁T | ⚁T⚁T⚂T⚂T | ⚂T | ⚄T | ⚄T⚂T⚂T | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚂T⚂T⚁T⚁T⚂T | ⚂T⚁T⚁T | ⚂T⚂T | ⚃T | ⚄T | ⚂T⚁T⚂T | ⚃T⚂T⚁T | ⚃T⚁T | ⚄T | ⚃T | ⚄T⚂T⚂T | ⚄T | ⚂T | ⚂T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T⚁T⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚂T | ⚃T | ⚂T | ⚃T | ⚄T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚂T⚁T⚂T | ⚃T | ⚃T | ⚃T | ⚄T⚁T⚁T⚂T | ⚂T⚂T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄p | ⚂T⚂T⚁T⚂T | ⚃T | ⚂T⚁T | ⚃T⚀T | ⚃T□T | ⚄T⚁T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚃T | ⚃T | ⚃T⚂T | ⚃T⚂T | ⚃T⚂T | ⚂T | ⚄T | ⚂T⚁T | ⚂T | ⚄T | ⚃T | ⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚃T⚁T | ⚂T⚂T⚂T | ⚂T | ⚃T | ⚃T | ⚂T | ⚂T⚁T⚂T | ⚂T | ⚂T | ⚄T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚂T | ⚄T | ⚃T | ⚃T⚁T | ⚂T | ⚄T⚂T | ⚃T | ⚃p | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T□T□T⚁T | ⚃T | ⚄T | ⚄T⚂T⚁π | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p ",
+    "content_syntactic": "(t) | (t) | (t) | (t)(t)(t)(t)(t)(t) | (t) | (t)(t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t)(t) | (t) | (t) | (t) | (H) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t)(t)(t)(t) | (t) | (t) | (t)(t)(t) | (t) | (HHHHHHHt) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t)(t) | (t)(t)(t) | (t)(t) | (t) | (t) | (t)(t)(t) | (t)(t)(t) | (t)(t) | (t) | (t) | (t)(t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (Ht)(t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(mt)(t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t)(t) | (t)(Ht) | (t) | (t) | (t) | (H) | (t) | (t)(t)(t)(t) | (t) | (t)(t) | (t)(t) | (t)(t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t)(t) | (t) | (t) | (HHt) | (t) | (t)(t)(t) | (EH) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (Et) | (t)(t) | (qt) | (t)(t) | (qt) | (t) | (t) | (t) | (t) | (t) | (qt)(qt)(qt)(t) | (t) | (t) | (t)(t)(t) | (t) | (t) | (t) | (qt) | (qt) | (t) | (qt)(mmmmmt)(mt)(t)(t)(qt)(t)(mt)(mmt)(t)(t)(t)(t)(t)(mt)(t)(t)(t)(t)(t)(Eqt)(qt)(t)(Et)(t) "
+  },
+  "tweets": [
+    
+  ],
+  "bloc_segments": {
+    "segments": {
+      
     },
-    "tweets": [],
-    "bloc_segments": {
-        "segments": {},
-        "last_segment": "2022.043",
-        "segment_count": 13,
-        "segmentation_type": "week_number"
+    "segments_details": {
+      
     },
-    "created_at_utc": "2022-10-27T23:09:36Z",
-    "screen_name": "OSoMe_IU",
-    "user_id": 187521608
+    "last_segment": "2022.045",
+    "segment_count": 189,
+    "segmentation_type": "week_number"
+  },
+  "created_at_utc": "2023-06-21T14:21:25Z",
+  "screen_name": "jesus",
+  "user_id": "8943",
+  "bloc_symbols_version": "v0.2022.10.26",
+  "more_details": {
+    "total_tweets": 291,
+    "first_tweet_created_at_local_time": "2009-12-08 18:54:01",
+    "last_tweet_created_at_local_time": "2022-11-13 20:13:10"
+  }
 }
 ```
 
@@ -676,14 +698,21 @@ Sample content of `osome_iu_bloc`:
   <summary>Generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` using four different BLOC models defined in `bloc_settings`. The `bigram` and `word-basic` models were used in the BLOC paper. The rest are experimental: </summary>
   
   ```python
-  from bloc.generator import add_bloc_sequences
-  from bloc.util import get_default_symbols
-  from bloc.util import conv_tf_matrix_to_json_compliant
-  from bloc.util import get_bloc_doc_lst
-  from bloc.util import get_bloc_variant_tf_matrix
+    import json
+    from bloc.generator import add_bloc_sequences
+    from bloc.util import conv_tf_matrix_to_json_compliant
+    from bloc.util import get_bloc_doc_lst
+    from bloc.util import get_bloc_params
+    from bloc.util import get_bloc_variant_tf_matrix
+    from bloc.util import get_default_symbols
+    from bloc.util import getDictFromJsonGZ
 
-  minimum_document_freq = 2
-  bloc_settings = [
+    fst_u_tweets = getDictFromJsonGZ('sample_raw_tweets_1.json.gz')
+    sec_u_tweets = getDictFromJsonGZ('sample_raw_tweets_2.json.gz')
+    gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=False, tweet_order='noop')#tweet_order since tweets are assumed sorted in chronological order 
+
+    minimum_document_freq = 2
+    bloc_settings = [
       {
           'name': 'm1: bigram',
           'ngram': 2,
@@ -725,20 +754,21 @@ Sample content of `osome_iu_bloc`:
           'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
           'bloc_alphabets': ['action_content_syntactic']
       }
-  ]
-    
-  all_bloc_symbols = get_default_symbols()
-  for bloc_model in bloc_settings:
+    ]
+
+    all_bloc_symbols = get_default_symbols()
+    for bloc_model in bloc_settings:
       #extract BLOC sequences from list containing tweet dictionaries
-      osome_iu_bloc = add_bloc_sequences( osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-      iu_bloom_bloc = add_bloc_sequences( iu_bloom_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-      bloc_collection = [osome_iu_bloc, iu_bloom_bloc]
+      fst_u_bloc = add_bloc_sequences( fst_u_tweets, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      sec_u_bloc = add_bloc_sequences( sec_u_tweets, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      #u_bloc = add_bloc_sequences(user_tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
+      bloc_collection = [fst_u_bloc, sec_u_bloc]
       
       #generate collection of BLOC documents
       bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src='IU', src_class='human')
-      tf_matrices = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], set_top_ngrams=bloc_model.get('set_top_ngrams', False), top_ngrams_add_all_docs=bloc_model.get('top_ngrams_add_all_docs', False))
-      
-      #to get JSON serializatable version of tf_matrices: tf_matrices = conv_tf_matrix_to_json_compliant(tf_matrices)
+      tf_matrix = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], set_top_ngrams=bloc_model.get('set_top_ngrams', False), top_ngrams_add_all_docs=bloc_model.get('top_ngrams_add_all_docs', False))
+
+      #to get JSON serializable version of tf_matrix: tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
   ```
     
   Sample annotated & abbreviated content of `tf_matrices`:
@@ -766,28 +796,34 @@ Sample content of `osome_iu_bloc`:
   <summary>A more efficient way to generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` is outlined below. The previous example requires all BLOC documents (`bloc_doc_lst`) to reside in memory. This could be problematic if we're processing a large collection. To remedy this, we could pass a generator to `get_bloc_variant_tf_matrix()` instead of a list of documents. For this example, we use a custom generator `user_tweets_generator_0()` which requires a gzip file containing tweets of a specific format (each line: `user_id \t [JSON list of tweets]`). You might need to write your own generator function that reads the tweets and generates BLOCs similar to `user_tweets_generator_0()`. However, the workflow is identical after reading tweets and generating BLOC strings: </summary>
   
   ```python
-  from bloc.tweet_generators import user_tweets_generator_0
-  from bloc.util import get_bloc_variant_tf_matrix
+    import json
+    from bloc.tweet_generators import user_tweets_generator_0
+    from bloc.util import get_bloc_variant_tf_matrix
+    from bloc.util import conv_tf_matrix_to_json_compliant
 
-  minimum_document_freq = 2
-  bloc_settings = [
-    {
-      'name': 'm1: bigram',
-      'ngram': 2,
-      'token_pattern': '[^ |()*]',
-      'bloc_variant': None,
-      'bloc_alphabets': ['action', 'content_syntactic']
-    }
-  ]
+    minimum_document_freq = 2
+    bloc_settings = [
+        {
+          'name': 'm1: bigram',
+          'ngram': 2,
+          'token_pattern': '[^ |()*]',
+          'bloc_variant': None,
+          'bloc_alphabets': ['action', 'content_syntactic']
+        }
+    ]
 
-  for bloc_model in bloc_settings:
+    for bloc_model in bloc_settings:
 
       pos_id_mapping = {}
       gen_bloc_params = {'bloc_alphabets': bloc_model['bloc_alphabets']}
-      input_files = ['/tmp/ten_tweets.jsonl.gz']
+      input_files = ['sample_timeline.jsonl.gz']
 
       doc_lst = user_tweets_generator_0(input_files, pos_id_mapping, gen_bloc_params=gen_bloc_params)
-      tf_matrices = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
+      tf_matrix = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
+      
+      #to get JSON serializable version of tf_matrix: tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
+      tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
+      print(json.dumps(tf_matrix, ensure_ascii=True))
   ```
 </details>
 
