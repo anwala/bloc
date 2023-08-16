@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-desc = """Behavioral Language for Online Classification (BLOC): A General Language for Modeling Social Media Account Behavior."""
+desc = """Behavioral Languages for Online Characterization (BLOC): Languages for Modeling Social Media Account Behaviors."""
 
 __appversion__ = None
 
