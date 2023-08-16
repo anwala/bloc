@@ -122,7 +122,7 @@ def get_tweet_type(twt):
     else:
         return 'tweet'
 
-def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_lookup=True, timeline_startdate='', timeline_scroll_by_hours=None):
+def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_lookup=True, timeline_startdate='', timeline_scroll_by_hours=None, no_sleep=False):
 
     if( max_pages < 0 ):
         return []
@@ -184,14 +184,22 @@ def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_l
             
 
         if( 'errors' in timeline ):
+            
             logger.error( '\terror: ' + str(timeline['errors']) )
-            #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
-            time.sleep(1)
+            if( no_sleep is False ):
+                #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+                logger.info('\tthrottling request (1): sleeping for 1 second')
+                time.sleep(1)
+            
             continue
 
         if( isinstance(timeline, dict) or len(timeline) == 0 ):
-            #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
-            time.sleep(1)
+            
+            if( no_sleep is False ):
+                #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+                logger.info('\tthrottling request (2): sleeping for 1 second')
+                time.sleep(1)
+
             continue
         
         
@@ -259,13 +267,14 @@ def get_timeline_tweets(oauth, screen_name, user_id='', max_pages=1, following_l
                     twt['bloc']['src_follows_tgt'] = relationship['source']['following']
                     twt['bloc']['tgt_follows_src'] = relationship['source']['followed_by']
                     
-        if( sleep_flag ):
+        if( sleep_flag and no_sleep is False ):
             #to conform with 1 request per second rate limit for user auth: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
+            logger.info('\tthrottling request (3): sleeping for 1 second')
             time.sleep(1)
 
     return tweets
 
-def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timeline_startdate='', timeline_scroll_by_hours=None):
+def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timeline_startdate='', timeline_scroll_by_hours=None, no_sleep=False, twitter_api_tweet_fields=None, twitter_api_expansion_fields=None):
 
     if( max_pages < 0 ):
         return []
@@ -279,6 +288,7 @@ def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timelin
     dedup_set = set()
     user_screen_name = ''
     next_token = None
+    include_everything = False if twitter_api_tweet_fields is not None or twitter_api_expansion_fields is not None else True
     timeline_scroll_by_hours = 0 if timeline_scroll_by_hours is None else timeline_scroll_by_hours    
     timeline_startdate = '' if timeline_startdate == '' else datetime.strptime( timeline_startdate, '%Y-%m-%d %H:%M:%S' )
 
@@ -289,18 +299,19 @@ def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timelin
         if( timeline_startdate != '' ):
             logger.info( f'\tfrom: {timeline_startdate} (timeline_scroll_by_hours: {timeline_scroll_by_hours})' )
 
+        response = {}
         try:
             end_time = None if timeline_startdate == '' else timeline_startdate.strftime('%Y-%m-%dT%H:%M:%S') + 'Z' 
-            response = ostwt.get_tweet_timeline(user_id, max_results=max_results, everything=True, pagination_token=next_token, end_time=end_time)
+            response = ostwt.get_tweet_timeline(user_id, max_results=max_results, everything=include_everything, pagination_token=next_token, end_time=end_time, fields=twitter_api_tweet_fields, expansions=twitter_api_expansion_fields)
         except:
             genericErrorInfo()
 
-        if( max_pages > 1 ):
-            logger.info('\tsleeping for 3 seconds')
-            time.sleep(3)
+        if( max_pages > 1 and no_sleep is False ):
+            logger.info('\tthrottling request: sleeping for 1 second')
+            time.sleep(1)
 
         if( 'meta' not in response or 'data' not in response ):
-            logger.info('\tno meta and data keys, breaking')
+            logger.info(f'\tno meta and data keys, breaking, response: {str(response)}')
             break        
         
         v1_tweets = conv_v2_tweets_to_v1(response)
@@ -312,7 +323,7 @@ def v2_get_timeline_tweets(ostwt, user_id, max_pages=1, max_results=100, timelin
 
             if( twt['id'] in dedup_set ):
                 continue
-
+            
             dedup_set.add( twt['id'] )
             user_screen_name = ' (@' + twt['user']['screen_name'] + ')'
             twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None})
@@ -1038,8 +1049,11 @@ def get_bloc_content_sem_ent_seq(symbols, tweet, content_semantic_add_pause=Fals
 def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_number', days_segment_count=-1):
 
     bloc_info['local_time'] = datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S')
-    bloc_info['week_number'] = format(local_time.year, '04d') + '.' + format(local_time.isocalendar()[1], '03d')
-
+    '''
+        isocalendar() returns (ISO Year, ISO Week Number, and ISO Weekday), note that local_time.year is not necessary = to isocalendar()[0] (iso calendar year), e.g., local time of 2018-12-31 20:50:51+00:00 has iso calendar values (2019, 1, 1)
+        that's the reason for changing format(local_time.year, '04d') to local_time.isocalendar()[0]
+    '''
+    bloc_info['week_number'] = format(local_time.isocalendar()[0], '04d') + '.' + format(local_time.isocalendar()[1], '03d')
 
     if( segmentation_type == 'yyyy-mm-dd' ):
         bloc_info['yyyy-mm-dd'] = datetime.strftime(created_at, '%Y-%m-%d')
@@ -1070,6 +1084,11 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         return twt
 
     def add_bloc_segments(twt, segment_id, bloc_segments):
+
+        loc_date = twt['bloc']['local_time'].split(' ')[0]
+        bloc_segments['segments_details'].setdefault( segment_id, {'local_dates':{}} )
+        bloc_segments['segments_details'][segment_id]['local_dates'].setdefault(loc_date, 0)
+        bloc_segments['segments_details'][segment_id]['local_dates'][loc_date] += 1
 
         twt['bloc']['bloc_sequences_short'] = {}
         for dim, dim_dct in twt['bloc']['bloc_sequences'].items():
@@ -1149,6 +1168,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     kwargs.setdefault('change_add_pause', False)
     kwargs.setdefault('time_reference', 'previous_tweet')#previous_tweet or reference_tweet
     kwargs.setdefault('sort_action_words', False)
+    kwargs.setdefault('tweet_order', 'reverse')#reverse or sorted
     
     all_bloc_symbols = kwargs.get('all_bloc_symbols', {})
 
@@ -1160,7 +1180,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     bloc_alphabets = kwargs.get('bloc_alphabets', ['action', 'content_syntactic', 'content_semantic_entity'])#additional valid bloc_alphabets: change, content_syntactic_with_pauses, action_content_syntactic
 
     segmentation_type = segmentation_type if segmentation_type in ['week_number', 'day_of_year_bin', 'yyyy-mm-dd'] else 'week_number'
-    bloc_segments = {'segments': {}, 'last_segment': '', 'segment_count': 0, 'segmentation_type': segmentation_type}
+    bloc_segments = {'segments': {}, 'segments_details': {}, 'last_segment': '', 'segment_count': 0, 'segmentation_type': segmentation_type}
     use_src_ref_time = True if kwargs['time_reference'] == 'reference_tweet' else False
 
     if( days_segment_count > 0 ):
@@ -1181,7 +1201,26 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     prev_twt = ''
     user_id = ''
     screen_name = ''
-    tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] )
+    #BLOC runs with tweets in chronological order. Since timeline tweets are by default in reverse chronological order, fix by reversing.
+    if( kwargs['tweet_order'] == 'reverse' ):
+        #normally done for timeline tweets which are ordered in reverse chronological
+        #reverse chronological: most recent tweet is first oldest tweet is last
+        tweets.reverse()
+        
+    elif( kwargs['tweet_order'] == 'sorted' ):
+        '''
+            Tweets created post snowflake (I think after 2010-11-04T21:02:48.000Z), can be sorted by ID, 
+            since the snowflake algorithm ensures that tweet IDs increase with time.
+
+            To accommodate sorting tweets created pre and post snowflake sort with time and tweet ID
+        '''
+        tweets = sorted( tweets, key=lambda x: x['bloc']['local_time'] + ' ' + str(x['id']) )
+    
+    more_details = {
+        'total_tweets': twt_len,
+        'first_tweet_created_at_local_time': '' if twt_len == 0 else tweets[0]['bloc']['local_time'],
+        'last_tweet_created_at_local_time': '' if twt_len == 0 else tweets[-1]['bloc']['local_time']
+    }
     for i in range( twt_len ):
         
         twt = tweets[i]
@@ -1191,7 +1230,6 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         screen_name = twt['user']['screen_name']
 
         ex_txt = get_twt_text_exclusively( twt[twt_text_ky], twt['entities'] )
-        
         delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         twt['bloc']['bloc_sequences'] = {}
 
@@ -1263,6 +1301,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
 
     if( kwargs['keep_bloc_segments'] is False ):
         bloc_segments['segments'] = {}
+        bloc_segments['segments_details'] = {}
 
     result = {
         'bloc': aggregate_bloc,
@@ -1271,7 +1310,8 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         'created_at_utc': datetime.utcnow().isoformat().split('.')[0] + 'Z',
         'screen_name': screen_name,
         'user_id': user_id,
-        'bloc_symbols_version': all_bloc_symbols.get('version', '')
+        'bloc_symbols_version': all_bloc_symbols.get('version', ''),
+        'more_details': more_details
     }
     
     return result
@@ -1300,24 +1340,20 @@ def post_proc_bloc_sequences(report, seconds_mark, minute_mark, ansi_code, segme
 
 def get_timeline_request_dets(report):
 
-    if( 'tweets' not in report or 'bloc' not in report ):
+    if( 'more_details' not in report ):
         return ''
 
-    if( len(report['tweets']) == 0 ):
-        return ''
-
-    tweets = report['tweets']
     details = ''
     try:
-        screen_name = report['screen_name'] if report['screen_name'] != '' else tweets[0]['user']['screen_name']
-        st_time = datetime.strptime(tweets[0]['bloc']['local_time'], '%Y-%m-%d %H:%M:%S')
-        en_time = datetime.strptime(tweets[-1]['bloc']['local_time'], '%Y-%m-%d %H:%M:%S')
-        week_diff = en_time.isocalendar()[1] - st_time.isocalendar()[1]
+        screen_name = report['screen_name']
+        st_time = datetime.strptime(report['more_details']['first_tweet_created_at_local_time'], '%Y-%m-%d %H:%M:%S')
+        en_time = datetime.strptime(report['more_details']['last_tweet_created_at_local_time'], '%Y-%m-%d %H:%M:%S')
 
         delta = en_time - st_time
-        delta = '(' + str(delta.days) + ' day(s), ' + str(delta.seconds//3600) + ':' + str( ((delta.seconds//60)%60) ) + '), '
+        week_diff = '{:.2f}'.format(delta.days/7)
+        delta = '(or ' + str(delta.days) + ' day(s), ' + str(delta.seconds//3600) + ':' + str( ((delta.seconds//60)%60) ) + '), '
         
-        details = '\n@' + screen_name + '\'s BLOC for ' + str(week_diff) + ' week(s), ' + delta + str(len(tweets)) + ' tweet(s) from ' + str(st_time) + ' to ' + str(en_time)
+        details = '\n@' + screen_name + '\'s BLOC for ' + str(week_diff) + ' week(s), ' + delta + str(report['more_details']['total_tweets']) + ' tweet(s) from ' + str(st_time) + ' to ' + str(en_time)
     except:
         genericErrorInfo()
     
@@ -1355,6 +1391,7 @@ def get_timeline_tweets_cache_filename(cache_path, screen_name, max_pages, follo
 def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, following_lookup=False, timeline_startdate='', timeline_scroll_by_hours=None, **kwargs):
 
     kwargs.setdefault('gen_rt_content', True)
+    kwargs.setdefault('no_sleep', False)
     
     kwargs.setdefault('cache_path', '')
     kwargs.setdefault('cache_read', False)
@@ -1365,10 +1402,19 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
 
     kwargs.setdefault('ansi_code', '91m')
     
+    tweet_fields = osometweet.TweetFields()
+    user_fields = osometweet.UserFields()
+    expansions = osometweet.TweetExpansions()
+    
+    tweet_fields.fields = ['id', 'text', 'source', 'lang', 'created_at', 'entities', 'context_annotations', 'referenced_tweets']
+    user_fields.fields = ['public_metrics', 'created_at']
+    expansions.expansions = ['author_id', 'in_reply_to_user_id', 'geo.place_id', 'attachments.media_keys', 'referenced_tweets.id', 'referenced_tweets.id.author_id']
+    
+    kwargs.setdefault('twitter_api_tweet_fields', tweet_fields + user_fields)
+    kwargs.setdefault('twitter_api_expansion_fields', expansions)
+    
     tweets = []
     write_cache = True
-    prev_now = datetime.now()
-
     if( screen_name == '' ):
         cache_filename = get_timeline_tweets_cache_filename(kwargs['cache_path'], user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
     else:
@@ -1387,22 +1433,28 @@ def get_user_bloc(oauth_or_ostwt, screen_name, user_id='', max_pages=1, followin
             write_cache = False
             logger.info('\tcache HIT')
 
+    prev_now = datetime.now()
     if( len(tweets) == 0 ):
 
         if( isinstance(oauth_or_ostwt, osometweet.OsomeTweet) ):
-            tweets = v2_get_timeline_tweets(oauth_or_ostwt, user_id=user_id, max_pages=max_pages, max_results=kwargs.get('max_results', 100), timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
+            tweets = v2_get_timeline_tweets(oauth_or_ostwt, user_id=user_id, max_pages=max_pages, max_results=kwargs.get('max_results', 100), timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours, no_sleep=kwargs['no_sleep'], twitter_api_tweet_fields=kwargs['twitter_api_tweet_fields'], twitter_api_expansion_fields=kwargs['twitter_api_expansion_fields'])
         else:
-            tweets = get_timeline_tweets(oauth_or_ostwt, screen_name, user_id=user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours)
+            tweets = get_timeline_tweets(oauth_or_ostwt, screen_name, user_id=user_id, max_pages=max_pages, following_lookup=following_lookup, timeline_startdate=timeline_startdate, timeline_scroll_by_hours=timeline_scroll_by_hours, no_sleep=kwargs['no_sleep'])
 
     if( cache_filename != '' and kwargs['cache_write'] is True and write_cache ):
         gzipTextFile(cache_filename, json.dumps(tweets, ensure_ascii=False))
-
     
-    delta = datetime.now() - prev_now
+    gen_tweets_total_seconds = (datetime.now() - prev_now).total_seconds()
+    prev_now = datetime.now()
     payload = add_bloc_sequences(tweets, **kwargs)
+
+    payload['elapsed_time'] = {}
+    payload['elapsed_time']['gen_tweets_total_seconds'] = gen_tweets_total_seconds
+    payload['elapsed_time']['gen_bloc_total_seconds'] = (datetime.now() - prev_now).total_seconds()
     
-    payload['elapsed_time'] = str(delta)
-    post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'], kwargs.get('segmentation_type', None))
+    if( kwargs.get('subcommand', '') != 'change' ):
+        #change has special printer, so skip printing BLOC here
+        post_proc_bloc_sequences(payload, kwargs['blank_mark'], kwargs['minute_mark'], kwargs['ansi_code'], kwargs.get('segmentation_type', None))    
 
     return payload
 
@@ -1443,7 +1495,7 @@ def gen_bloc_for_users(screen_names_or_ids, bearer_token, consumer_key, consumer
     
     if( is_symbols_good(all_bloc_symbols) is False ):
         logger.warning(f'\ngen_bloc_for_users(): all_bloc_symbols is corrupt (bloc_symbols_file: {bloc_symbols_file}), so returning')
-        return []
+        return {}
 
     if( kwargs.get('time_function', 'f1') == 'f1' ):
         f1_time_function(all_bloc_symbols['bloc_alphabets']['time'])
@@ -1464,6 +1516,7 @@ def gen_bloc_for_users(screen_names_or_ids, bearer_token, consumer_key, consumer
     i = 1
     all_users_bloc = []
     src_len = len(screen_names_or_ids)
+    runtime_details = {'gen_tweets_total_seconds': 0, 'gen_bloc_total_seconds': 0}
 
     for scn_name_or_id in screen_names_or_ids:
         
@@ -1485,8 +1538,14 @@ def gen_bloc_for_users(screen_names_or_ids, bearer_token, consumer_key, consumer
             timeline_scroll_by_hours=timeline_scroll_by_hours,
             **kwargs
         )
+
+        runtime_details['gen_tweets_total_seconds'] += user_bloc['elapsed_time']['gen_tweets_total_seconds']
+        runtime_details['gen_bloc_total_seconds'] += user_bloc['elapsed_time']['gen_bloc_total_seconds']
         all_users_bloc.append( user_bloc )
 
         i += 1
 
-    return all_users_bloc
+    return {
+        'all_users_bloc': all_users_bloc,
+        'runtime_details': runtime_details
+    }

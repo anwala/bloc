@@ -109,6 +109,10 @@ def get_v1_lite_twt(v2_tweet, all_v1_user_objs, all_referenced_v2_tweets):
         twtype = r_twts[0]['type']; rtid = r_twts[0]['id']
         if( twtype == 'retweeted' and rtid in all_referenced_v2_tweets ):
             payload['retweeted_status'] = get_v1_lite_twt( all_referenced_v2_tweets[rtid], all_v1_user_objs, all_referenced_v2_tweets ) 
+            #print('rt outside:', all_referenced_v2_tweets[rtid].keys())
+            #print('rt inside:', payload['retweeted_status'].keys())
+            #print('')
+            #print()
     #add retweeted_status - end
 
 

@@ -1,15 +1,16 @@
-## Behavioral Language for Online Classification (BLOC)
+## Behavioral Languages for Online Characterization (BLOC)
 BLOC is a language that represents the behaviors of social media accounts irrespective of class (e.g., human or cyborg or bot) or intent (e.g., malicious or benign). BLOC represents behaviors as words consisting of letters drawn from multiple alphabets (e.g., `action` and `content_syntactic`). BLOC words map to features which aid in the study of behaviors, bot and coordination detection, etc.
 
 Even though BLOC can be applied to other social media accounts, this Python tool supports Twitter exclusively. For a comprehensive description of BLOC, please see the BLOC paper, [A General Language for Modeling Social Media Account Behavior](http://arxiv.org/abs/2211.00639). To cite, kindly use:
 ```
-@techreport{nwala_flammini_menczer,
+@article{nwala_flammini_menczer,
+  title={A Language Framework for Modeling Social Media Account Behavior},
   author={Nwala, Alexander C. and Flammini, Alessandro and Menczer, Filippo},
-  institution = {arXiv},
-  number = {2211.00639},
-  title={A General Language for Modeling Social Media Account Behavior},
-  type = {Preprint},
-  year = {2022}
+  journal = {EPJ Data Science},
+  volume = {XX},
+  number = {X},
+  pages={XXX--XXX},
+  year = {2023}
 }
 ```
 
@@ -73,7 +74,7 @@ For both paper and code, the dot (`.`) symbol is used when time granularity is n
 
 ### Basic command-line usage:
 
-**Example 1, generate BLOC strings using Twitter v1.1 credentials**:
+### Example 1, generate BLOC strings using Twitter v1.1 credentials:
 
 BLOC supports Twitter v1.1 and v2. For Twitter v1.1, the following command generates BLOC for [`OSoMe_IU`](https://twitter.com/OSoMe_IU/) tweets for a maximum of 4 pages (`-m 4`; 20 tweets per page), and saves the BLOC strings with tweets (`--keep-tweets`) in osome_bloc.json (`-o osome_bloc.json`):
 ```bash
@@ -106,11 +107,11 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-sec
   ```
 </details>
 
-**Example 2, generate BLOC strings using Twitter v2 credentials**:
+### Example 2, generate BLOC strings using Twitter v2 credentials:
 
 For Twitter v2 (each page returns a maximum of 100 tweets):
 ```bash
-$ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
+$ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="$BEARER_TOKEN" OSoMe_IU
 ```
 <details>
   <summary>Output:</summary>
@@ -141,15 +142,15 @@ $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
 
 Note that you could generate BLOC strings for multiple accounts:
 ```bash
-$ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="foo" OSoMe_IU acnwala
+$ bloc -m 4 -o multiple_accounts.jsonl --keep-tweets --bearer-token="$BEARER_TOKEN" OSoMe_IU acnwala
 ```
 For a full list of all the command-line options BLOC offers, run `$ bloc --help`
 
-**Example 3, compare the similarity across multiple users**:
+### Example 3, compare the similarity across multiple users:
 
 The following command generates BLOC strings for multiple accounts, `@FoxNews`, `@CNN`, `@POTUS`, `@SpeakerPelosi`, `@GOPLeader`, `@GenerateACat`, and `@storygraphbot`. Next, it tokenizes the string using pauses (`[^□⚀⚁⚂⚃⚄⚅. |()*]+|[□⚀⚁⚂⚃⚄⚅.]`). Next, it generates TF-IDF vectors for all accounts using the BLOC words as features. Next, it computes (average) cosine similarity across all pairs, and writes the output to `accounts_sim.jsonl`:
 ```bash
-$ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+$ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="$BEARER_TOKEN" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
 ```
 <details>
   <summary>Partial output of cosine similarity values across all pairs of accounts in descending order:</summary>
@@ -472,12 +473,12 @@ $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action co
   ```
 </details>
 
-**Example 4, generate list of most frequent BLOC words**:
+### Example 4, generate list of most frequent BLOC words:
 
 The following command generates the top BLOC words for the same accounts in Example 3. Similar to Example 3, after generating BLOC strings, it tokenizes using pauses, print the top BLOC words for individual accounts and across all accounts, and writes the output to `top_bloc_words.json`:
 
 ```bash
-$ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+$ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="$BEARER_TOKEN" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
 ```
 
 <details>
@@ -582,34 +583,115 @@ $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets a
   ```
 </details>
 
-### Python script usage:
+### Example 5, compute change across BLOC string segment:
+
+After generating BLOC `action` (`--bloc-alphabets action`) strings, the strings are grouped into weekly segments since the default `--segmentation-type=week_number`. This means that all BLOC strings generated within the same week are grouped into the same segment. On the `STDOUT`, segments are separated by vertical bars `|`. Next, BLOC vectors (using pauses to tokenize strings into words) for all segments are generated. Next, the cosine similarity across all adjacent segments is computed. Subsequently, the application computes the z-scores (we assume similarity of segments follows a Normal distribution) of all cosine similarity values and attempts to find pairs of segments that significantly differ.
+
+```bash
+$ bloc change --timeline-startdate="2022-11-13 23:59:59" --change-mean=0.61 --change-stddev=0.3 --change-zscore-threshold=-1.5 --token-pattern=word -m 8 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" jesus
+```
+
+<details>
+  <summary>Output of change report which identifies adjacent BLOC segments that significantly differ:</summary>
+  
+  ```
+    ...
+    all_bloc_change_usr_self_cmp():
+        zscore_sim: Would NOT compute change_mean since 0.61 was supplied
+        zscore_sim: Would NOT compute change_stddev since 0.3 was supplied
+        zscore_sim: change_zscore_threshold: -1.5
+
+    change report for jesus:
+        action cosine sim summary stats, mean: 0.6434, median: 0.6685, stddev: 0.2931
+        1. change sim: 0.00, z-score: -2.03
+        ⚃T vs. ⚄p
+        2017-08-15 -- 2017-09-15
+
+        2. change sim: 0.00, z-score: -2.03
+        ⚄p vs. ⚂T⚂T⚁T⚂T
+        2017-09-15 -- 2017-09-24
+
+        3. change sim: 0.15, z-score: -1.52
+        ⚄T vs. ⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p
+        2022-11-06 -- 2022-11-13
+
+        change_rate: 0.02 (3/190)
+
+    @jesus's BLOC for 674.71 week(s), (or 4723 day(s), 1:19), 291 tweet(s) from 2009-12-08 14:54:01 to 2022-11-13 16:13:10
+    action: (change highlighted in red)
+    T | ⚃T | ⚄T | ⚂T⚂T⚁T⚁T⚁T⚂T | ⚃T | ⚂T⚂T | ⚃T⚂T | ⚂T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T | ⚃T | ⚃T⚁T | ⚂T⚂T | ⚂T⚂T⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄T | ⚃T | ⚂T | ⚃T⚁T⚁T⚁T | ⚁T⚁T⚂T⚂T | ⚂T | ⚄T | ⚄T⚂T⚂T | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚂T⚂T⚁T⚁T⚂T | ⚂T⚁T⚁T | ⚂T⚂T | ⚃T | ⚄T | ⚂T⚁T⚂T | ⚃T⚂T⚁T | ⚃T⚁T | ⚄T | ⚃T | ⚄T⚂T⚂T | ⚄T | ⚂T | ⚂T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T⚁T⚂T | ⚃T | ⚄T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚂T | ⚃T | ⚂T | ⚃T | ⚄T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚂T⚁T⚂T | ⚃T | ⚃T | ⚃T | ⚄T⚁T⚁T⚂T | ⚂T⚂T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄p | ⚂T⚂T⚁T⚂T | ⚃T | ⚂T⚁T | ⚃T⚀T | ⚃T□T | ⚄T⚁T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚂T | ⚃T⚂T | ⚂T | ⚄T | ⚂T⚁T | ⚂T | ⚄T | ⚃T | ⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚃T⚁T | ⚂T⚂T⚂T | ⚂T | ⚃T | ⚃T | ⚂T | ⚂T⚁T⚂T | ⚂T | ⚂T | ⚄T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚂T | ⚄T | ⚃T | ⚃T⚁T | ⚂T | ⚄T⚂T | ⚃T | ⚃p | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T□T□T⚁T | ⚃T | ⚄T | ⚄T⚂T⚁π | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p
+
+    summary of kinds of changes (change profile)
+        1.0000: pause
+        0.8883: word
+        0.5694: activity
+  ```
+</details>
+
+The mean and standard deviations used in computing z-scores may be set with `--change-mean` and `--change-stddev`, respectively. Otherwise, they will be empirically determined. Finally, `--change-zscore-threshold'` (default = -1.5) specifies the number of standard deviations (z-score) a similarity value has to exceed to be considered significant.
+
+The above example segments BLOC `action` strings into weekly bins. To change this, for example, to segment BLOC strings into 14 day bins (`--segmentation-type=day_of_year_bin --days-segment-count=14`), the following command may be used.
+
+```bash
+$ bloc change -m 4 --segmentation-type=day_of_year_bin --days-segment-count=14 --no-sort-action-words --bloc-alphabets action --bearer-token="$BEARER_TOKEN" OSoMe_IU
+```
+
+To compute change for BLOC `content_syntactic` alphabets, use the following parameters: 
+```
+--change-mean=0.45
+--change-stddev=0.38
+--change-zscore-threshold=-1.5
+```
+
+### Python script usage (see [sample-tweets](tests/unit/sample-tweets) for sample tweets used in this example):
 
 Generate BLOC from list of `OSoMe_IU`'s tweet `dict` objects stored in a list `osome_iu_tweets_lst` with `add_bloc_sequences()`:
 ```python
 from bloc.generator import add_bloc_sequences
+from bloc.util import get_bloc_params
 from bloc.util import get_default_symbols
+from bloc.util import getDictFromJsonGZ
+import json
 
 all_bloc_symbols = get_default_symbols()
-osome_iu_bloc = add_bloc_sequences(osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets= ['action', 'content_syntactic'])
+user_tweets = getDictFromJsonGZ('sample_raw_tweets_1.json.gz')
+
+gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=True, tweet_order='noop')#tweet_order since tweets are assumed sorted in chronological order 
+u_bloc = add_bloc_sequences(user_tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
+
+print(json.dumps(u_bloc, ensure_ascii=False))
 ```
 
 Sample content of `osome_iu_bloc`:
 ```json
 {
-    "bloc": {
-        "action": "T | ⚂r⚁r⚁r⚀r⚂T⚁r⚀r⚁T⚀T⚁T⚀π⚂r⚂r | ⚂r⚁r⚂T | ⚂r⚂r | ⚁T⚁rp⚂p⚂r⚂T | ⚁T⚂T⚂r | ⚂T⚂r⚀r⚂T | ⚂r⚂T⚁r⚀T⚁p⚁p⚁r⚁p⚁rr⚂T | ⚂T⚁T⚂T | ⚂pr⚁p⚂rrrrrrr⚁p | ⚂T⚁r⚁rrrrrr⚂rr⚁r⚁r⚁r⚁T | ⚂r□r□r□rr⚂T⚂r⚂T | ⚂p ",
-        "content_syntactic": "(Uqt) | (mmmUt)(HmmUt)(mmUφt)(Emmt)(Ut) | (mmmqt) | (EUt)(t)(Ut)(Ut) | (Et)(mUt) | (Ut)(mmqt) | (Ut)(Emt)(mmt)(mmt)(mt)(mUt) | (mmUt)(EUt)(Uqt) | (t)(t)(t) | (Ut)(mqt) | (mUt)(Ut) | (t) "
+  "bloc": {
+    "action": "T | ⚃T | ⚄T | ⚂T⚂T⚁T⚁T⚁T⚂T | ⚃T | ⚂T⚂T | ⚃T⚂T | ⚂T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T | ⚃T | ⚃T⚁T | ⚂T⚂T | ⚂T⚂T⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄T | ⚃T | ⚂T | ⚃T⚁T⚁T⚁T | ⚁T⚁T⚂T⚂T | ⚂T | ⚄T | ⚄T⚂T⚂T | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T | ⚂T⚂T⚁T⚁T⚂T | ⚂T⚁T⚁T | ⚂T⚂T | ⚃T | ⚄T | ⚂T⚁T⚂T | ⚃T⚂T⚁T | ⚃T⚁T | ⚄T | ⚃T | ⚄T⚂T⚂T | ⚄T | ⚂T | ⚂T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T⚂T⚁T⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T | ⚂T | ⚃T | ⚂T | ⚃T | ⚄T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚄T | ⚄T | ⚄T | ⚄T | ⚃T⚂T | ⚂T⚁T⚂T | ⚃T | ⚃T | ⚃T | ⚄T⚁T⚁T⚂T | ⚂T⚂T | ⚃T⚁T | ⚃T | ⚃T | ⚃T | ⚃T | ⚄p | ⚂T⚂T⚁T⚂T | ⚃T | ⚂T⚁T | ⚃T⚀T | ⚃T□T | ⚄T⚁T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚃T | ⚃T | ⚃T⚂T | ⚃T⚂T | ⚃T⚂T | ⚂T | ⚄T | ⚂T⚁T | ⚂T | ⚄T | ⚃T | ⚁T | ⚄T | ⚃T | ⚃T | ⚃T | ⚂T | ⚃T | ⚄T | ⚂T⚂T | ⚃T⚁T | ⚂T⚂T⚂T | ⚂T | ⚃T | ⚃T | ⚂T | ⚂T⚁T⚂T | ⚂T | ⚂T | ⚄T | ⚃T | ⚃T | ⚂T | ⚃T | ⚃T⚁T | ⚃T | ⚃T | ⚃T⚂T | ⚂T | ⚄T | ⚂T | ⚃T | ⚃T⚂T | ⚄T | ⚃T | ⚃T⚁T | ⚂T | ⚄T⚂T | ⚃T | ⚃p | ⚃T | ⚃T | ⚃T | ⚃T | ⚂T□T□T⚁T | ⚃T | ⚄T | ⚄T⚂T⚁π | ⚃T | ⚃T | ⚄T | ⚃T | ⚃T | ⚄T | ⚄T⚁p□p⚂T⚂p⚀T⚀p⚀p⚀p⚀p⚁p⚀p⚁p□p⚀p□p⚁T⚁T⚀p⚀p□T⚁T⚂T⚀T⚁p ",
+    "content_syntactic": "(t) | (t) | (t) | (t)(t)(t)(t)(t)(t) | (t) | (t)(t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t)(t) | (t) | (t) | (t) | (H) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t)(t)(t)(t) | (t) | (t) | (t)(t)(t) | (t) | (HHHHHHHt) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t)(t) | (t)(t)(t) | (t)(t) | (t) | (t) | (t)(t)(t) | (t)(t)(t) | (t)(t) | (t) | (t) | (t)(t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (Ht)(t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(mt)(t) | (t) | (t) | (t) | (t)(t)(t)(t) | (t)(t) | (t)(Ht) | (t) | (t) | (t) | (H) | (t) | (t)(t)(t)(t) | (t) | (t)(t) | (t)(t) | (t)(t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t)(t) | (t)(t)(t) | (t) | (t) | (HHt) | (t) | (t)(t)(t) | (EH) | (t) | (t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (t) | (t)(t) | (t) | (t) | (t) | (t) | (t)(t) | (t) | (Et) | (t)(t) | (qt) | (t)(t) | (qt) | (t) | (t) | (t) | (t) | (t) | (qt)(qt)(qt)(t) | (t) | (t) | (t)(t)(t) | (t) | (t) | (t) | (qt) | (qt) | (t) | (qt)(mmmmmt)(mt)(t)(t)(qt)(t)(mt)(mmt)(t)(t)(t)(t)(t)(mt)(t)(t)(t)(t)(t)(Eqt)(qt)(t)(Et)(t) "
+  },
+  "tweets": [
+    
+  ],
+  "bloc_segments": {
+    "segments": {
+      
     },
-    "tweets": [],
-    "bloc_segments": {
-        "segments": {},
-        "last_segment": "2022.043",
-        "segment_count": 13,
-        "segmentation_type": "week_number"
+    "segments_details": {
+      
     },
-    "created_at_utc": "2022-10-27T23:09:36Z",
-    "screen_name": "OSoMe_IU",
-    "user_id": 187521608
+    "last_segment": "2022.045",
+    "segment_count": 189,
+    "segmentation_type": "week_number"
+  },
+  "created_at_utc": "2023-06-21T14:21:25Z",
+  "screen_name": "jesus",
+  "user_id": "8943",
+  "bloc_symbols_version": "v0.2022.10.26",
+  "more_details": {
+    "total_tweets": 291,
+    "first_tweet_created_at_local_time": "2009-12-08 18:54:01",
+    "last_tweet_created_at_local_time": "2022-11-13 20:13:10"
+  }
 }
 ```
 
@@ -617,14 +699,21 @@ Sample content of `osome_iu_bloc`:
   <summary>Generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` using four different BLOC models defined in `bloc_settings`. The `bigram` and `word-basic` models were used in the BLOC paper. The rest are experimental: </summary>
   
   ```python
-  from bloc.generator import add_bloc_sequences
-  from bloc.util import get_default_symbols
-  from bloc.util import conv_tf_matrix_to_json_compliant
-  from bloc.util import get_bloc_doc_lst
-  from bloc.util import get_bloc_variant_tf_matrix
+    import json
+    from bloc.generator import add_bloc_sequences
+    from bloc.util import conv_tf_matrix_to_json_compliant
+    from bloc.util import get_bloc_doc_lst
+    from bloc.util import get_bloc_params
+    from bloc.util import get_bloc_variant_tf_matrix
+    from bloc.util import get_default_symbols
+    from bloc.util import getDictFromJsonGZ
 
-  minimum_document_freq = 2
-  bloc_settings = [
+    fst_u_tweets = getDictFromJsonGZ('sample_raw_tweets_1.json.gz')
+    sec_u_tweets = getDictFromJsonGZ('sample_raw_tweets_2.json.gz')
+    gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=False, tweet_order='noop')#tweet_order since tweets are assumed sorted in chronological order 
+
+    minimum_document_freq = 2
+    bloc_settings = [
       {
           'name': 'm1: bigram',
           'ngram': 2,
@@ -666,20 +755,21 @@ Sample content of `osome_iu_bloc`:
           'bloc_variant': {'type': 'folded_words', 'fold_start_count': 4, 'count_applies_to_all_char': False},
           'bloc_alphabets': ['action_content_syntactic']
       }
-  ]
-    
-  all_bloc_symbols = get_default_symbols()
-  for bloc_model in bloc_settings:
+    ]
+
+    all_bloc_symbols = get_default_symbols()
+    for bloc_model in bloc_settings:
       #extract BLOC sequences from list containing tweet dictionaries
-      osome_iu_bloc = add_bloc_sequences( osome_iu_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-      iu_bloom_bloc = add_bloc_sequences( iu_bloom_tweets_lst, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
-      bloc_collection = [osome_iu_bloc, iu_bloom_bloc]
+      fst_u_bloc = add_bloc_sequences( fst_u_tweets, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      sec_u_bloc = add_bloc_sequences( sec_u_tweets, all_bloc_symbols=all_bloc_symbols, bloc_alphabets=bloc_model['bloc_alphabets'], sort_action_words=bloc_model.get('sort_action_words', False) )
+      #u_bloc = add_bloc_sequences(user_tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
+      bloc_collection = [fst_u_bloc, sec_u_bloc]
       
       #generate collection of BLOC documents
       bloc_doc_lst = get_bloc_doc_lst(bloc_collection, bloc_model['bloc_alphabets'], src='IU', src_class='human')
-      tf_matrices = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], set_top_ngrams=bloc_model.get('set_top_ngrams', False), top_ngrams_add_all_docs=bloc_model.get('top_ngrams_add_all_docs', False))
-      
-      #to get JSON serializatable version of tf_matrices: tf_matrices = conv_tf_matrix_to_json_compliant(tf_matrices)
+      tf_matrix = get_bloc_variant_tf_matrix(bloc_doc_lst, tf_matrix_norm=bloc_model['tf_matrix_norm'], keep_tf_matrix=bloc_model['keep_tf_matrix'], min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], set_top_ngrams=bloc_model.get('set_top_ngrams', False), top_ngrams_add_all_docs=bloc_model.get('top_ngrams_add_all_docs', False))
+
+      #to get JSON serializable version of tf_matrix: tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
   ```
     
   Sample annotated & abbreviated content of `tf_matrices`:
@@ -707,27 +797,74 @@ Sample content of `osome_iu_bloc`:
   <summary>A more efficient way to generate BLOC TF-IDF matrix with `get_bloc_variant_tf_matrix()` is outlined below. The previous example requires all BLOC documents (`bloc_doc_lst`) to reside in memory. This could be problematic if we're processing a large collection. To remedy this, we could pass a generator to `get_bloc_variant_tf_matrix()` instead of a list of documents. For this example, we use a custom generator `user_tweets_generator_0()` which requires a gzip file containing tweets of a specific format (each line: `user_id \t [JSON list of tweets]`). You might need to write your own generator function that reads the tweets and generates BLOCs similar to `user_tweets_generator_0()`. However, the workflow is identical after reading tweets and generating BLOC strings: </summary>
   
   ```python
-  from bloc.tweet_generators import user_tweets_generator_0
-  from bloc.util import get_bloc_variant_tf_matrix
+    import json
+    from bloc.tweet_generators import user_tweets_generator_0
+    from bloc.util import get_bloc_variant_tf_matrix
+    from bloc.util import conv_tf_matrix_to_json_compliant
 
-  minimum_document_freq = 2
-  bloc_settings = [
-    {
-      'name': 'm1: bigram',
-      'ngram': 2,
-      'token_pattern': '[^ |()*]',
-      'bloc_variant': None,
-      'bloc_alphabets': ['action', 'content_syntactic']
-    }
-  ]
+    minimum_document_freq = 2
+    bloc_settings = [
+        {
+          'name': 'm1: bigram',
+          'ngram': 2,
+          'token_pattern': '[^ |()*]',
+          'bloc_variant': None,
+          'bloc_alphabets': ['action', 'content_syntactic']
+        }
+    ]
 
-  for bloc_model in bloc_settings:
+    for bloc_model in bloc_settings:
 
       pos_id_mapping = {}
       gen_bloc_params = {'bloc_alphabets': bloc_model['bloc_alphabets']}
-      input_files = ['/tmp/ten_tweets.jsonl.gz']
+      input_files = ['sample_timeline.jsonl.gz']
 
       doc_lst = user_tweets_generator_0(input_files, pos_id_mapping, gen_bloc_params=gen_bloc_params)
-      tf_matrices = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
+      tf_matrix = get_bloc_variant_tf_matrix(doc_lst, min_df=minimum_document_freq, ngram=bloc_model['ngram'], token_pattern=bloc_model['token_pattern'], bloc_variant=bloc_model['bloc_variant'], pos_id_mapping=pos_id_mapping)
+      
+      #to get JSON serializable version of tf_matrix: tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
+      tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
+      print(json.dumps(tf_matrix, ensure_ascii=True))
+  ```
+</details>
+
+<details>
+  <summary>Run BLOC subcommands: Pairwise cosine similarity of BLOC TF-IDF vectors of users (`sim`), generate top BLOC words (`top_ngrams`), and run BLOC change analysis (`change`).</summary>
+  
+  ```python
+    from bloc.generator import add_bloc_sequences
+    from bloc.subcommands import run_subcommands
+    from bloc.util import dumpJsonToFile
+    from bloc.util import get_bloc_params
+    from bloc.util import get_default_symbols
+    from bloc.util import getDictFromJsonGZ
+
+    bloc_payload = []
+    all_bloc_symbols = get_default_symbols()
+    gen_bloc_params, gen_bloc_args = get_bloc_params([], '', sort_action_words=True, keep_bloc_segments=True, tweet_order='noop')#tweet_order since tweets are assumed sorted in chronological order 
+
+    #sample_raw_tweets_*.json.gz location: bloc/tree/cluster/tests/unit/sample-tweets/sample_raw_tweets_*.json.gz
+    for user_tweets in [getDictFromJsonGZ('sample_raw_tweets_1.json.gz'), getDictFromJsonGZ('sample_raw_tweets_2.json.gz')]:
+        u_bloc = add_bloc_sequences(user_tweets, all_bloc_symbols=all_bloc_symbols, **gen_bloc_params)
+        bloc_payload.append(u_bloc)
+
+
+    pairwise_sim_report = run_subcommands(gen_bloc_args, 'sim', bloc_payload)
+    top_k_bloc_words = run_subcommands(gen_bloc_args, 'top_ngrams', bloc_payload)
+
+    #Change currently should be run separately per alphabet since the change parameters (change_mean and change_stddev) are empirically derived per alphabet
+    gen_bloc_args.bloc_alphabets = ['action']
+    action_change_report = run_subcommands(gen_bloc_args, 'change', bloc_payload)
+
+
+    gen_bloc_args.change_mean = 0.45
+    gen_bloc_args.change_stddev = 0.38
+    gen_bloc_args.bloc_alphabets = ['content_syntactic']
+    content_change_report = run_subcommands(gen_bloc_args, 'change', bloc_payload)
+    change_report = {'action': action_change_report, 'content_syntactic': content_change_report}
+
+    dumpJsonToFile('pairwise_sim_report.json', pairwise_sim_report)
+    dumpJsonToFile('top_k_bloc_words.json', top_k_bloc_words)
+    dumpJsonToFile('change_report.json', change_report)
   ```
 </details>

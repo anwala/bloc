@@ -1,3 +1,4 @@
+import copy
 import gzip
 import json
 import logging
@@ -8,11 +9,14 @@ import sys
 import time
 import numpy as np
 import scipy.sparse as sp
+import statistics
 
+from argparse import Namespace
 from datetime import datetime
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 
 logger = logging.getLogger('bloc.bloc')
@@ -236,7 +240,19 @@ def gzipTextFile(path, txt):
 #/stringmatrix/vector manipulation - start
 
 def get_color_txt(txt, ansi_code='91m'):
-    return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[00m'.format(txt)
+    '''
+        #https://stackoverflow.com/a/287944
+        HEADER = '\033[95m'
+        OKBLUE = '\033[94m'
+        OKCYAN = '\033[96m'
+        OKGREEN = '\033[92m'
+        WARNING = '\033[93m'
+        FAIL = '\033[91m'
+        ENDC = '\033[0m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+    '''
+    return txt if txt.strip() == '' else '\033[' + ansi_code + '{}\033[0m'.format(txt)
 
 def color_bloc_action_str(bloc_action_str, split_pattern='([^□⚀⚁⚂⚃⚄⚅.|()*]+)', ansi_code='91m'):
 
@@ -392,6 +408,48 @@ def gen_folded_vocab( tf_matrix, bloc_variant ):
 def get_default_symbols():
     bloc_symbols_file = '{}/symbols.json'.format(os.path.dirname(os.path.abspath(__file__)))
     return getDictFromFile(bloc_symbols_file)
+
+def get_bloc_params(user_ids, bearer_token, token_pattern='word', no_screen_name=True, account_src='Twitter search', no_sleep=True, max_pages=1, max_results=100, bloc_alphabets=['action', 'content_syntactic'], **kwargs):
+    
+    #bloc_alphabets = ['action', 'change', 'content_syntactic', 'content_semantic_entity', 'content_semantic_sentiment']
+    params = {
+        'access_token': '', 'access_token_secret': '', 'consumer_key': '', 'consumer_secret': '', 
+        'account_class': '',
+        'account_src': account_src,
+        'ansi_code': '91m', 
+        'bearer_token': bearer_token, 
+        'blank_mark': 60, 'minute_mark': 5, 'segmentation_type': 'week_number', 'days_segment_count': -1, 
+        'bloc_alphabets': bloc_alphabets, 'bloc_symbols_file': None, 
+        'cache_path': '', 'cache_read': False, 'cache_write': False, 
+        'change_mean': 0.61, 
+        'change_stddev': 0.3, 
+        'change_zscore_threshold': 1.5,
+        'fold_start_count': 4,
+        'following_lookup': False, 
+        'keep_bloc_segments': False, 
+        'keep_tf_matrix': False,
+        'keep_tweets': False, 
+        'log_file': '', 'log_format': '', 'log_level': 'INFO', 'log_dets': {'level': 20},
+        'max_pages': max_pages, 'max_results': max_results, 
+        'ngram': 1 if token_pattern == 'word' else 2,
+        'no_screen_name': no_screen_name, 'no_sleep': no_sleep, 
+        'output': None, 
+        'screen_names_or_ids': user_ids, 
+        'set_top_ngrams': False,
+        'sim_no_summary': True,
+        'sort_action_words': False,#
+        'subcommand': '', 
+        'tf_matrix_norm': '',
+        'timeline_startdate': '', 'timeline_scroll_by_hours': None, 'time_function': 'f2', 
+        'token_pattern': token_pattern,
+        'top_ngrams_add_all_docs': False,
+        'tweet_order': 'reverse'
+    }
+
+    for ky, val in kwargs.items():
+        params[ky] = val
+
+    return params, Namespace(**params)
 
 def gen_bloc_variant_tf_mat( tf_matrix, bloc_variant ):
 
@@ -671,6 +729,14 @@ def conv_tf_matrix_to_json_compliant(tf_mat):
 
     return tf_mat
 
+def cosine_sim(fst_vect, sec_vect):
+    
+    sim = cosine_similarity( fst_vect, sec_vect )[0][0]
+    sim = 1 if sim > 1 else sim
+    sim = -1 if sim < -1 else sim
+    
+    return sim
+
 def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-zA-Z\'\’-]+[a-zA-Z]+\b|\d+[.,]?\d*', **kwargs):
 
     kwargs.setdefault('rm_doc_text', True)
@@ -695,7 +761,6 @@ def get_tf_matrix(doc_lst, n, tf_mat=None, vocab=None, token_pattern=r'(?u)\b[a-
     kwargs.setdefault('tf_idf_norm', 'l2')
     kwargs.setdefault('count_vectorizer_kwargs', {})
 
-    
     #if payload changes, update map_tf_mat_to_doc_ids()
     #also update conv_tf_matrix_to_json_compliant()
     payload = {
@@ -996,3 +1061,30 @@ def twitter_v2_user_lookup_ids(osome_twt_obj, screen_names):
     return all_users
 
 #twitter v2 - end
+
+#misc - start
+def five_number_summary(nums):
+
+    if( len(nums) == 0 ):
+        return {}
+
+    num_lst = copy.deepcopy(nums)
+    num_lst.sort()
+    
+    summary_stats = {}
+    quarts = np.quantile(num_lst, [0.25,0.5,0.75])
+
+    summary_stats['minimum'] = num_lst[0]
+    summary_stats['q1'] = quarts[0]
+    summary_stats['median'] = quarts[1]
+    summary_stats['q3'] = quarts[2]
+    summary_stats['maximum'] = num_lst[-1]
+
+    summary_stats['mean'] = statistics.mean(num_lst)
+    summary_stats['range'] = summary_stats['maximum'] - summary_stats['minimum']
+    summary_stats['count'] = len(num_lst)
+    summary_stats['pstdev'] = statistics.pstdev( num_lst )
+
+
+    return summary_stats
+#misc - end

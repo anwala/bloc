@@ -38,6 +38,18 @@ def get_generic_args(subcommand):
     if( subcommand != '' ):
         parser.add_argument('--account-class', default='', help='Class labels (e.g., bot or cyborgs or humans) of accounts')
         parser.add_argument('--account-src', default='', help='Origin of accounts')
+        
+        #The default change parameters are for action. For now when running change, run separately for all BLOC alphabets and set the change parameters accordingly.
+        '''
+            action: Empirical cosine sim dist for humans: {"minimum":0.0,"q1":0.33609692727625756,"median":0.6766282517941079,"q3":0.8832042603773356,"maximum":1,"mean":0.6129176186770743,"range":1.0,"count":62970,"pstdev":0.301971126053064,"user_class":"human","accouts":"astroturf cresci-17 gregory_purchased midterm-2018 stock verified botwiki gilani-17 kevin_feedback varol-icwsm zoher-organization"}
+            content_syntactic: Empirical cosine sim dist for humans: {"minimum":0.0,"q1":0.0,"median":0.4494364165239821,"q3":0.833633638968502,"maximum":1.0,"mean":0.4536984627121439,"range":1.0,"count":53615,"pstdev":0.3865080012262164,"user_class":"human"}
+        '''
+        parser.add_argument('--change-mean', type=float, default=0.61, help='Empirical mean cosine similarity across BLOC segments.')
+        parser.add_argument('--change-stddev', type=float, default=0.30, help='Empirical standard deviation across BLOC segments.')
+        parser.add_argument('--change-zscore-threshold', type=float, default=-1.5, help='Number of standard deviations (z-score) a similarity value has to exceed to be considered significant.')
+
+        parser.add_argument('--sim-no-summary', action='store_true', help='For BLOC sim subcommand, do not present feature importance and cosine sim of user pairs. Default is False (summary is active).')
+
         parser.add_argument('--fold-start-count', type=int, default=4, help='For word models, value marks maximum threshold words must reach before truncation.')
         parser.add_argument('--keep-tf-matrix', action='store_true', help='Keep or do not keep tf_matrix. Default is False.')
         parser.add_argument('--ngram', type=int, help='n-gram for tokenization BLOC string.')
@@ -67,6 +79,7 @@ def get_generic_args(subcommand):
     parser.add_argument('-m', '--max-pages', type=int, default=1, help='The maximum number of user Timeline pages (20 tweets/page) to extract tweets.')
     parser.add_argument('--max-results', type=int, default=100, help='For Twitter v2, maximum number of tweets to return per request.')
     parser.add_argument('--no-screen-name', action='store_true', help='"screen_names_or_ids" contains user_ids and not screen_names')
+    parser.add_argument('--no-sleep', action='store_true', help='Do not sleep when extracting tweets: switch off rate limiting. Default is False')
     parser.add_argument('-o', '--output', help='Output path')
 
     parser.add_argument('--timeline-startdate', default='', help='Extract tweets published from --timeline-startdate in UTC (YYYY-MM-DD HH:MM:SS).')
@@ -93,25 +106,29 @@ def proc_req(args, subcommand):
 
     
     params['sort_action_words'] = False if params.get('no_sort_action_words', False) is True else True
-    params['keep_bloc_segments'] = True if subcommand == 'cluster' else params.get('keep_bloc_segments', False)
-    if( subcommand != '' ):
-        if( params.get('ngram', None) is None ):
-            params['ngram'] = 2 if params.get('token_pattern', '') == 'bigram' else 1
+    params['keep_bloc_segments'] = True if subcommand == 'change' else params.get('keep_bloc_segments', False)
 
     setLogDefaults( params )
     setLoggerDets( logger, params['log_dets'] )
+
     return gen_bloc_for_users( **params )
 
-def write_output(output, payload):
+def write_output(output, payload, user_twt_keys):
+
+    user_args = ' '.join(sys.argv)
+    for ky in user_twt_keys:
+        user_args = user_args.replace(ky, 'REDACTED')
 
     try:
         if( isinstance(payload, list) ):
             with open(output, 'w') as outfile:
                 for u in payload:
+                    u['self'] = user_args
                     outfile.write( json.dumps(u, ensure_ascii=False) + '\n' )
 
             print('\nwrite_output(): wrote:', output)
         else:
+            payload['self'] = user_args
             dumpJsonToFile(output, payload, indentFlag=False)
     except:
         genericErrorInfo()
@@ -127,21 +144,34 @@ def main():
             print(__appversion__)
             return
 
-        bloc_subcommand = ['top_ngrams', 'sim']
+        bloc_subcommand = ['top_ngrams', 'sim', 'change']
         if( sys.argv[1] in bloc_subcommand ):
             subcommand = sys.argv[1]
             del sys.argv[1]
 
-
     parser = get_generic_args(subcommand)
     args = parser.parse_args()
+    args.subcommand = subcommand
+    
+    params = vars(args)
+    user_twt_keys = [ params[k] for k in ['bearer_token', 'access_token', 'access_token_secret', 'consumer_key', 'consumer_secret'] if params.get(k, '') != '' ]
     
     bloc_payload = proc_req(args, subcommand)
+    all_users_bloc = bloc_payload.get('all_users_bloc', [])
     if( subcommand != '' ):
-        bloc_payload = run_subcommands(args, subcommand, bloc_payload)
+        all_users_bloc = run_subcommands(args, subcommand, all_users_bloc)
 
     if( args.output is not None ):
-        write_output( args.output, bloc_payload )
+        write_output( args.output, all_users_bloc, user_twt_keys )
 
 if __name__ == '__main__':
     main()
+    '''
+        Examples:
+        $ bloc -m 4 -o osome_bloc.json --keep-tweets --consumer-key="foo" --consumer-secret="foo" --access-token="bar" --access-token-secret="bar" OSoMe_IU
+        $ bloc -m 4 -o osome_bloc.json --keep-tweets --bearer-token="foo" OSoMe_IU
+        $ bloc sim -o accounts_sim.jsonl --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+        $ bloc top_ngrams -o top_bloc_words.json --token-pattern=word --bloc-alphabets action content_syntactic change -m 4 --bearer-token="foo" FoxNews CNN POTUS SpeakerPelosi GOPLeader GenerateACat storygraphbot
+        $ bloc change --no-sort-action-words --bloc-alphabets action -m 4 --bearer-token="$BEARER_TOKEN" OSoMe_IU
+
+    '''
