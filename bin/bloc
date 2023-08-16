@@ -52,7 +52,7 @@ def get_generic_args(subcommand):
 
         parser.add_argument('--fold-start-count', type=int, default=4, help='For word models, value marks maximum threshold words must reach before truncation.')
         parser.add_argument('--keep-tf-matrix', action='store_true', help='Keep or do not keep tf_matrix. Default is False.')
-        parser.add_argument('--ngram', type=int, default=1, help='n-gram for tokenization BLOC string.')
+        parser.add_argument('--ngram', type=int, help='n-gram for tokenization BLOC string.')
         parser.add_argument('--no-sort-action-words', action='store_true', help='For word models, do not sort action words. Default is False (action words sorted).')
         parser.add_argument('--set-top-ngrams', action='store_true', help='Generate top BLOC n-grams per user or across all users. If True, --keep-tf-matrix must be True. Default is False.')
         parser.add_argument('--tf-matrix-norm', default='', choices=['', 'l1', 'max'], help='Norm to use for normalizing TF matrix (see sklearn.preprocessing.normalize(). Blank means tf_matrix_normalized is not needed.')
