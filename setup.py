@@ -37,7 +37,7 @@ setup(
         'scipy',
         'scikit-learn',
         'textblob',
-        'urllib3==1.26.6'
+        'urllib3<2.0'
     ],
     scripts=[
         'bin/bloc'
