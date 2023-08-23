@@ -7,9 +7,9 @@ Even though BLOC can be applied to other social media accounts, this Python tool
   title={A Language Framework for Modeling Social Media Account Behavior},
   author={Nwala, Alexander C. and Flammini, Alessandro and Menczer, Filippo},
   journal = {EPJ Data Science},
-  volume = {XX},
-  number = {X},
-  pages={XXX--XXX},
+  volume = {12},
+  number = {1},
+  pages={33},
   year = {2023}
 }
 ```

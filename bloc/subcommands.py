@@ -389,7 +389,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
             zscore_sim = (sm['sim'] - zscore_mean)/zscore_stddev
             '''
-            params, μ = 0.61 (zscore_mean), σ = 0.3 (zscore_stddev), change_zscore_threshold = 1.5
+            params, μ = 0.61 (zscore_mean), σ = 0.3 (zscore_stddev), change_zscore_threshold = -1.5
             zscore -1.5 --------- 0 --------- 1.5
             
             cosine sim of 0.16 (z-score = -1.5) and lower cosine values (e.g., 0.15) are considered significant change since they reach the change_zscore_threshold.
