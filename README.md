@@ -3,7 +3,7 @@ The BLOC language framework provides languages that represent the behaviors of s
 
 Even though BLOC can be applied to other social media accounts, this Python tool supports Twitter exclusively. For a comprehensive description of BLOC, please see the BLOC paper, [A General Language for Modeling Social Media Account Behavior](http://arxiv.org/abs/2211.00639). To cite, kindly use:
 ```
-@article{nwala_flammini_menczer,
+@article{nwala_flammini_menczer_bloc,
   title={A Language Framework for Modeling Social Media Account Behavior},
   author={Nwala, Alexander C. and Flammini, Alessandro and Menczer, Filippo},
   journal = {EPJ Data Science},
