@@ -221,7 +221,7 @@ def pairwise_usr_cmp(tf_mat, print_summary=True):
 
     return report
 
-def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None, change_zscore_threshold=1.5):
+def all_bloc_change_usr_self_cmp(bloc_collection, bloc_model, bloc_alphabets, change_mean=None, change_stddev=None, change_zscore_threshold=-1.5):
     
     logger.info('\nall_bloc_change_usr_self_cmp():')
     logger.info( '\tzscore_sim: Would {}compute change_mean since {} was supplied'.format('' if change_mean is None else 'NOT ', change_mean) )

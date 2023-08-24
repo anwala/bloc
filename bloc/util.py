@@ -423,7 +423,7 @@ def get_bloc_params(user_ids, bearer_token, token_pattern='word', no_screen_name
         'cache_path': '', 'cache_read': False, 'cache_write': False, 
         'change_mean': 0.61, 
         'change_stddev': 0.3, 
-        'change_zscore_threshold': 1.5,
+        'change_zscore_threshold': -1.5,
         'fold_start_count': 4,
         'following_lookup': False, 
         'keep_bloc_segments': False, 
