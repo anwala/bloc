@@ -10,7 +10,10 @@ Even though BLOC can be applied to other social media accounts, this Python tool
   volume = {12},
   number = {1},
   pages={33},
-  year = {2023}
+  year = {2023},
+  year = {2023},
+  doi = {10.1140/epjds/s13688-023-00410-9},
+  url = {https://doi.org/10.1140/epjds/s13688-023-00410-9}
 }
 ```
 
