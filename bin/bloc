@@ -32,9 +32,18 @@ def get_generic_args(subcommand):
     parser.add_argument('--blank-mark', type=int, default=60, help='Actions done under --blank-mark (in seconds) are assigned blank prefix.')
     parser.add_argument('--minute-mark', type=int, default=5, help='Actions done under --minute-mark are assigned the □ prefix.')
 
-    parser.add_argument('--segmentation-type', default='week_number', choices=['week_number', 'day_of_year_bin', 'yyyy-mm-dd'], help='How to segment BLOC string. Segments of strings are separated by |. If day_of_year_bin selected, use --days-segment-count to change the number of days marking segment boundaries.')
+    parser.add_argument('--segmentation-type', default='week_number', choices=['week_number', 'day_of_year_bin', 'yyyy-mm-dd', 'segment_on_pauses'], help='How to segment BLOC string. Segments of strings are separated by |. If day_of_year_bin selected, use --days-segment-count to change the number of days marking segment boundaries.')
     parser.add_argument('--days-segment-count', type=int, default=1, help='For --segmentation-type=day_of_year_bin. This value determines the number of days marking segment boundaries.')
 
+    '''
+        ⚀ - Time, (under hour)       from at least minute_mark
+        ⚁ - Time, (under day)        from at least 1 hour
+        ⚂ - Time, (under week)       from at least 1 day
+        ⚃ - Time, (under month)      from at least 1 week
+        ⚄ - Time, (under year)       from at least 1 month
+        ⚅ - Time, (over year)        from at least 1 year
+    '''
+    parser.add_argument('--segment-on-pauses', type=int, default=3600, help='Segment tweets (BLOC strings) using pauses >= value (value in seconds)')
     if( subcommand != '' ):
         parser.add_argument('--account-class', default='', help='Class labels (e.g., bot or cyborgs or humans) of accounts')
         parser.add_argument('--account-src', default='', help='Origin of accounts')
