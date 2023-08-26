@@ -1183,7 +1183,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     bloc_alphabets = kwargs.get('bloc_alphabets', ['action', 'content_syntactic', 'content_semantic_entity'])#additional valid bloc_alphabets: change, content_syntactic_with_pauses, action_content_syntactic
 
     segmentation_type = segmentation_type if segmentation_type in ['week_number', 'day_of_year_bin', 'yyyy-mm-dd', 'segment_on_pauses'] else 'week_number'
-    bloc_segments = {'segments': {}, 'segments_details': {}, 'last_segment': '', 'segment_count': 0, 'segmentation_type': segmentation_type}
+    bloc_segments = {'segments': {}, 'segments_details': {}, 'last_segment': -1 if segmentation_type == 'segment_on_pauses' else '', 'segment_count': 0, 'segmentation_type': segmentation_type}
     use_src_ref_time = True if kwargs['time_reference'] == 'reference_tweet' else False
 
     if( days_segment_count > 0 ):
@@ -1227,7 +1227,6 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         
         twt = tweets[i]
         
-        
         twt_text_ky = 'full_text' if 'full_text' in twt else 'text'
         user_id = twt['user']['id']
         screen_name = twt['user']['screen_name']
@@ -1236,20 +1235,15 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         
         pause_segment_number = pause_segment_number + 1 if delta_seconds >= kwargs['segment_on_pauses'] else pause_segment_number
-        #print('dur_glyph:', dur_glyph, delta_seconds, pause_segment_number)
-
         bloc_segmenter( twt['bloc'], created_at, twt['bloc']['local_time_obj'], segmentation_type=segmentation_type, days_segment_count=days_segment_count, pause_segment_number=pause_segment_number )
         del twt['bloc']['local_time_obj']
 
 
         twt['bloc']['bloc_sequences'] = {}
         segment_id = twt['bloc'][segmentation_type]
-        print('segment_id.type:', type(segment_id))
-
         if( 'action' in bloc_alphabets ):
             twt['bloc']['bloc_sequences']['action'] = get_bloc_action_seq( all_bloc_symbols['bloc_alphabets']['action'], twt, delta_seconds, dur_glyph )
-            #print(twt['bloc']['bloc_sequences']['action']['seq'])
-            #print()
+            
         if( 'content_syntactic' in bloc_alphabets ):
             twt['bloc']['bloc_sequences']['content_syntactic'] = get_bloc_content_syn_seq(all_bloc_symbols['bloc_alphabets']['content_syntactic'], twt, content_syntactic_add_pause=False, txt_key=twt_text_ky, gen_rt_content=gen_rt_content, add_txt_glyph=add_txt_glyph, delta_seconds=delta_seconds, dur_glyph=dur_glyph)
 
