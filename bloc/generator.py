@@ -1199,7 +1199,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         #Wed Oct 10 20:19:24 +0000 2018
         created_at = datetime.strptime(twt['created_at'], '%a %b %d %H:%M:%S %z %Y')
         local_time = datetimeFromUtcToLocal(created_at)
-        twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None, 'local_time': datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S'), 'local_time_obj': local_time})
+        twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None, 'local_time': datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S'), 'local_time_obj': local_time, 'created_at_obj': created_at})
 
     
     #BLOC runs with tweets in chronological order. Since timeline tweets are by default in reverse chronological order, fix by reversing.
@@ -1235,9 +1235,10 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         
         pause_segment_number = pause_segment_number + 1 if delta_seconds >= kwargs['segment_on_pauses'] else pause_segment_number
-        bloc_segmenter( twt['bloc'], created_at, twt['bloc']['local_time_obj'], segmentation_type=segmentation_type, days_segment_count=days_segment_count, pause_segment_number=pause_segment_number )
+        bloc_segmenter( twt['bloc'], twt['bloc']['created_at_obj'], twt['bloc']['local_time_obj'], segmentation_type=segmentation_type, days_segment_count=days_segment_count, pause_segment_number=pause_segment_number )
         del twt['bloc']['local_time_obj']
-
+        del twt['bloc']['created_at_obj']
+        
 
         twt['bloc']['bloc_sequences'] = {}
         segment_id = twt['bloc'][segmentation_type]
