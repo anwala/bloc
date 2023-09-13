@@ -1,3 +1,4 @@
+import sys
 import logging
 from itertools import combinations
 
@@ -287,23 +288,24 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
             if( 'tf_idf_matrix' not in self_mat ):
                 continue
-            
-            #print('vocab:', self_mat['vocab'])
             pre_vect = self_mat['tf_idf_matrix'][0]['tf_vector']
             cur_vect = self_mat['tf_idf_matrix'][1]['tf_vector']
+            
+            '''
             if( pre_vect.nnz == 0 or cur_vect.nnz == 0 ):
                 continue
+            '''
 
             sim = cosine_sim( pre_vect, cur_vect )
             all_self_sim.append({'fst_doc_seg_id': self_bloc_doc_lst[i-1]['seg_id'], 'sec_doc_seg_id': self_bloc_doc_lst[i]['seg_id'], 'sim': sim, 'change_profile': get_change_profile(self_mat)})
 
             '''
-            print('d1:', fst_doc['text'])
-            print('d2:', sec_doc['text'])
-            print('v:', self_mat['vocab'])
+            print('\tvocab:', self_mat['vocab'])
+            print('\td1:', fst_doc['text'])
+            print('\td2:', sec_doc['text'])
             #print('v1:', pre_vect.toarray()[0])
             #print('v2:', cur_vect.toarray()[0])
-            print('sim:', sim)
+            print('\tsim:', sim)
             #print('all_self_sim')
             #print(all_self_sim)
             print()
@@ -340,6 +342,8 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
 
         fst_doc_len = change_mat['tf_matrix'][0]['tf_vector'].toarray().take(words_indices)
         sec_doc_len = change_mat['tf_matrix'][1]['tf_vector'].toarray().take(words_indices)
+
+
         fst_doc_len = sum(fst_doc_len)
         sec_doc_len = sum(sec_doc_len)
         max_doc_len = max(fst_doc_len, sec_doc_len)
@@ -347,6 +351,7 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         pause_change = -1 if fst_doc_pause_vect.shape[0] == 0 or sec_doc_pause_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_pause_vect], [sec_doc_pause_vect])
         word_change = -1 if fst_doc_words_vect.shape[0] == 0 or sec_doc_words_vect.shape[0] == 0 else 1 - cosine_sim([fst_doc_words_vect], [sec_doc_words_vect])
         activity_change = -1 if max_doc_len == 0 else 1 - (min(fst_doc_len, sec_doc_len)/max_doc_len)
+
         return {
             'pause': pause_change,
             'word': word_change,
@@ -371,6 +376,19 @@ def bloc_change_usr_self_cmp(usr_bloc, bloc_model, bloc_alphabets, change_mean, 
         
         self_bloc_doc_lst = self_doc_lst(usr_bloc.get('bloc_segments', {}), alph)
         self_sim_report['self_sim'][alph] = calc_self_sim(self_bloc_doc_lst, bloc_model)
+
+        segments_len = len(usr_bloc['bloc_segments']['segments'])
+       
+        '''
+        print('alph:', alph)
+        print( 'segments_len/doc_len:', segments_len, len(self_bloc_doc_lst) )
+        print('doc:', self_bloc_doc_lst)
+        print('self_sim:', self_sim_report['self_sim'][alph])
+        print(usr_bloc['bloc_segments']['segments'])
+        print()
+        '''
+       
+
         summary_stats = five_number_summary([ v['sim'] for v in self_sim_report['self_sim'][alph] ])
         if( len(summary_stats) == 0 ):
             continue

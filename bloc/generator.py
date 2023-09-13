@@ -886,7 +886,7 @@ def get_bloc_content_syn_seq(symbols, tweet, content_syntactic_add_pause=False, 
             label = ''
             note = symbols['non_friend_mention']['description']
 
-            if( twt['in_reply_to_status_id'] is None and len(twt['entities']['user_mentions']) != 0 ):
+            if( twt.get('in_reply_to_status_id', None) is None and len(twt['entities']['user_mentions']) != 0 ):
                 #this is NOT a reply
                 label = symbols['non_friend_mention']['symbol']
 
@@ -924,7 +924,7 @@ def get_bloc_content_syn_seq(symbols, tweet, content_syntactic_add_pause=False, 
                     seq.append({
                         'label': label,
                         'note': note,
-                        'details': {'mention_screen_name': m['screen_name']}
+                        'details': {'mention_screen_name': m.get('screen_name', '')}
                     })
 
 
@@ -1046,13 +1046,14 @@ def get_bloc_content_sem_ent_seq(symbols, tweet, content_semantic_add_pause=Fals
 
     return result
 
-def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_number', days_segment_count=-1, pause_segment_number=-1):
-
+def bloc_segmenter(bloc_info, created_at, segmentation_type='week_number', days_segment_count=-1, pause_segment_number=-1):
+    
     '''
         isocalendar() returns (ISO Year, ISO Week Number, and ISO Weekday), note that local_time.year is not necessary = to isocalendar()[0] (iso calendar year), e.g., local time of 2018-12-31 20:50:51+00:00 has iso calendar values (2019, 1, 1)
         that's the reason for changing format(local_time.year, '04d') to local_time.isocalendar()[0]
+        bloc_info['week_number'] = format(local_time.isocalendar()[0], '04d') + '.' + format(local_time.isocalendar()[1], '03d')
     '''
-    bloc_info['week_number'] = format(local_time.isocalendar()[0], '04d') + '.' + format(local_time.isocalendar()[1], '03d')
+    bloc_info['week_number'] = format(created_at.isocalendar()[0], '04d') + '.' + format(created_at.isocalendar()[1], '03d')
 
     if( segmentation_type == 'yyyy-mm-dd' ):
         bloc_info['yyyy-mm-dd'] = datetime.strftime(created_at, '%Y-%m-%d')
@@ -1062,11 +1063,11 @@ def bloc_segmenter(bloc_info, created_at, local_time, segmentation_type='week_nu
     
     if( days_segment_count > 0 ):
         
-        bloc_info['day_of_year']     = local_time.timetuple().tm_yday
+        bloc_info['day_of_year']     = created_at.timetuple().tm_yday
         bloc_info['day_of_year_bin'] = (bloc_info['day_of_year']-1)//days_segment_count
 
-        bloc_info['day_of_year']     = format(local_time.year, '04d') + '.' + format(bloc_info['day_of_year'], '03d')
-        bloc_info['day_of_year_bin'] = format(local_time.year, '04d') + '.' + format(bloc_info['day_of_year_bin'], '03d')
+        bloc_info['day_of_year']     = format(created_at.year, '04d') + '.' + format(bloc_info['day_of_year'], '03d')
+        bloc_info['day_of_year_bin'] = format(created_at.year, '04d') + '.' + format(bloc_info['day_of_year_bin'], '03d')
         
     bloc_info['segmentation_type'] = segmentation_type
 
@@ -1179,6 +1180,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         logger.error(f'\nadd_bloc_sequences(): all_bloc_symbols is corrupt, so returning')
         return {}
 
+    
     days_segment_count = kwargs.get('days_segment_count', -1)
     bloc_alphabets = kwargs.get('bloc_alphabets', ['action', 'content_syntactic', 'content_semantic_entity'])#additional valid bloc_alphabets: change, content_syntactic_with_pauses, action_content_syntactic
 
@@ -1199,7 +1201,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         #Wed Oct 10 20:19:24 +0000 2018
         created_at = datetime.strptime(twt['created_at'], '%a %b %d %H:%M:%S %z %Y')
         local_time = datetimeFromUtcToLocal(created_at)
-        twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None, 'local_time': datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S'), 'local_time_obj': local_time, 'created_at_obj': created_at})
+        twt.setdefault('bloc', {'src_follows_tgt': None, 'tgt_follows_src': None, 'local_time': datetime.strftime(local_time, '%Y-%m-%d %H:%M:%S'), 'created_at_obj': created_at})
 
     
     #BLOC runs with tweets in chronological order. Since timeline tweets are by default in reverse chronological order, fix by reversing.
@@ -1235,10 +1237,9 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
         delta_seconds, dur_glyph = get_pause(symbols=all_bloc_symbols['bloc_alphabets']['time'], twt=twt, prev_twt=prev_twt, blank_mark=blank_mark, minute_mark=minute_mark, use_src_ref_time=use_src_ref_time)
         
         pause_segment_number = pause_segment_number + 1 if delta_seconds >= kwargs['segment_on_pauses'] else pause_segment_number
-        bloc_segmenter( twt['bloc'], twt['bloc']['created_at_obj'], twt['bloc']['local_time_obj'], segmentation_type=segmentation_type, days_segment_count=days_segment_count, pause_segment_number=pause_segment_number )
-        del twt['bloc']['local_time_obj']
+        bloc_segmenter( twt['bloc'], twt['bloc']['created_at_obj'], segmentation_type=segmentation_type, days_segment_count=days_segment_count, pause_segment_number=pause_segment_number )
         del twt['bloc']['created_at_obj']
-        
+
 
         twt['bloc']['bloc_sequences'] = {}
         segment_id = twt['bloc'][segmentation_type]
