@@ -826,7 +826,7 @@ Sample content of `osome_iu_bloc`:
       
       #to get JSON serializable version of tf_matrix: tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
       tf_matrix = conv_tf_matrix_to_json_compliant(tf_matrix)
-      print(json.dumps(tf_matrix, ensure_ascii=True))
+      print(json.dumps(tf_matrix, ensure_ascii=False))
   ```
 </details>
 

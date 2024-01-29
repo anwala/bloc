@@ -1171,7 +1171,7 @@ def add_bloc_sequences(tweets, blank_mark=60, minute_mark=5, gen_rt_content=True
     kwargs.setdefault('change_add_pause', False)
     kwargs.setdefault('time_reference', 'previous_tweet')#previous_tweet or reference_tweet
     kwargs.setdefault('sort_action_words', False)
-    kwargs.setdefault('tweet_order', 'reverse')#reverse or sorted
+    kwargs.setdefault('tweet_order', 'sorted')#reverse or sorted
     kwargs.setdefault('segment_on_pauses', -1)#reverse or sorted
     
     all_bloc_symbols = kwargs.get('all_bloc_symbols', {})
