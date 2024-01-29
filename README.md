@@ -23,7 +23,7 @@ Option 1:
 $ pip install twitterbloc
 ```
 
-Option 2:
+Option 2 (for most recent update):
 
 ```bash
 $ git clone https://github.com/anwala/bloc.git
