@@ -46,7 +46,7 @@ The image below outlines the BLOC strings for a sequence of three tweets (a repl
 
 ## BLOC Alphabets (Code vs. Paper)
 
-More alphabets are implemented here compared to the BLOC paper ([*A General Language for Modeling Social Media Account Behavior*](http://arxiv.org/abs/2211.00639)). Specifically, this BLOC tool implements these [alphabets](/blob/main/bloc/symbols.json):
+More alphabets are implemented here compared to the BLOC paper ([*A General Language for Modeling Social Media Account Behavior*](http://arxiv.org/abs/2211.00639)). Specifically, this BLOC tool implements these [alphabets](bloc/symbols.json):
 * `action`
 * `content_syntactic`
 * `content_semantic_sentiment`
@@ -70,7 +70,7 @@ Pause symbols introduced in paper:
 <img src="misc/f_1.png" alt="BLOC pause function, f_1(delta)" height="100"><br/>
 <img src="misc/f_2.png" alt="BLOC pause function, f_2(delta)" height="200">
 
-For both paper and code, the dot (`.`) symbol is used when time granularity is not needed (`--time-function=f1`). Also, one may change the alphabets by supplying a path (e.g., `--bloc-symbols-file=/path/to/my/custom/bloc_symbols.json`) to a JSON file formatted similarly as [alphabets](/blob/main/bloc/symbols.json). However, ensure that there are no duplicate or multi-letter symbols.
+For both paper and code, the dot (`.`) symbol is used when time granularity is not needed (`--time-function=f1`). Also, one may change the alphabets by supplying a path (e.g., `--bloc-symbols-file=/path/to/my/custom/bloc_symbols.json`) to a JSON file formatted similarly as [alphabets](bloc/symbols.json). However, ensure that there are no duplicate or multi-letter symbols.
 
 ## Usage/Examples
 
